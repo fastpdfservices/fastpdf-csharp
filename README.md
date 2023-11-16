@@ -6,7 +6,7 @@ Welcome to **fastpdf** C# Package, the versatile and quick solution for your PDF
 
 `fastpdf` is a C# package designed to simplify the PDF generation process. It streamlines the procedure of rendering HTML/CSS templates into a PDF document, offering granular control over the rendering options, and provides the ability to add images and barcodes into your PDFs.
 
-`fastpdf` leverages the PDF manipulation API available at [fastpdfservice.com](https://www.fastpdfservice.com), ensuring high performance, scalability, and reliability. By using fastpdf, you are able to generate complex, high-quality PDFs efficiently. 
+`fastpdf` leverages the PDF manipulation API available at [fastpdfservice.com](https://fastpdfservice.com), ensuring high performance, scalability, and reliability. By using fastpdf, you are able to generate complex, high-quality PDFs efficiently. 
 
 ## Key Features
 
@@ -20,7 +20,7 @@ Welcome to **fastpdf** C# Package, the versatile and quick solution for your PDF
 
 Before you start with the fastpdf C# Package, make sure you have C# 14+ installed on your machine.
 
-To use `fastpdf`, you'll first need to register an account to [fastpdfservice.com](https://www.fastpdfservice.com), and get your API key. 
+To use `fastpdf`, you'll first need to register an account to [fastpdfservice.com](https://fastpdfservice.com), and get your API key. 
 
 Install fastpdf from NuGet:
 ```xml {{ title: 'C#' }}
