@@ -27,22 +27,22 @@ namespace FastPDFService.Models
         /// <summary>
         /// Gets or sets the format of the stylesheet file. Default is "css".
         /// </summary>
-        public string Format { get; set; } = "css";
+        public string? Format { get; set; } = "css";
 
         /// <summary>
         /// Gets or sets the description of the stylesheet file. Default is "fastpdf-csharp StyleFile".
         /// </summary>
-        public string Description { get; set; } = "fastpdf-csharp StyleFile";
+        public string? Description { get; set; } = "fastpdf-csharp StyleFile";
 
         /// <summary>
         /// Gets or sets the binary data of the stylesheet file.
         /// </summary>
-        public byte[] StylesheetFile { get; set; }
+        public byte[]? StylesheetFile { get; set; }
 
         /// <summary>
         /// Gets or sets the unique identifier of the stylesheet file.
         /// </summary>
-        public string Id { get; set; }
+        public string? Id { get; set; }
 
         /// <summary>
         /// Gets or sets an optional numerical value associated with the stylesheet file.
@@ -52,17 +52,17 @@ namespace FastPDFService.Models
         /// <summary>
         /// Gets or sets the timestamp of the stylesheet file.
         /// </summary>
-        public DateTime Timestamp { get; set; }
+        public DateTime? Timestamp { get; set; }
 
         /// <summary>
         /// Gets or sets the identifier of the template associated with the stylesheet file.
         /// </summary>
-        public string TemplateId { get; set; }
+        public string? TemplateId { get; set; }
 
         /// <summary>
         /// Gets or sets the filename of the stylesheet file.
         /// </summary>
-        public string Filename { get; set; }
+        public string? Filename { get; set; }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="StyleFile"/> class.
@@ -90,7 +90,7 @@ namespace FastPDFService.Models
         }
 
         /// <inheritdoc/>
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             if (obj is StyleFile other)
             {
@@ -117,9 +117,12 @@ namespace FastPDFService.Models
         /// <inheritdoc/>
         public override string ToString()
         {
+            var stylesheetFileString = StylesheetFile != null 
+                ? BitConverter.ToString(StylesheetFile)[..Math.Min(20, StylesheetFile.Length)] + "..." 
+                : "null";
             return $"StyleFile {{ Format = {Format}, Description = {Description}, " +
-                   $"StylesheetFile = [{(StylesheetFile != null ? BitConverter.ToString(StylesheetFile).Substring(0, Math.Min(20, StylesheetFile.Length)) + "..." : "null")}], " +
-                   $"Id = {Id}, Number = {Number}, Timestamp = {Timestamp}, TemplateId = {TemplateId}, Filename = {Filename} }}";
+                   $"StylesheetFile = [{stylesheetFileString}], Id = {Id}, Number = {Number}, " +
+                   $"Timestamp = {Timestamp}, TemplateId = {TemplateId}, Filename = {Filename} }}";
         }
     }
 }

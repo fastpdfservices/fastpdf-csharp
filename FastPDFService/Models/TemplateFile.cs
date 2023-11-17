@@ -21,11 +21,11 @@ namespace FastPDFService.Models
         /// <summary>
         /// Gets or sets the unique identifier of the template.
         /// </summary>
-        public string Id { get; set; }
+        public string? Id { get; set; }
 
 
         /// <inheritdoc/>
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             return obj is TemplateFile file && Id == file.Id;
         }
