@@ -2,7 +2,7 @@
 // RenderOptions.cs
 // Created on 15 Nov 2023 by K.Edeline
 // Description:
-//   Defines options for rendering documents in the FastPDF service,
+//   Defines options for rendering documents in the FastPDFService service,
 //   including layout, format, margins, and other rendering parameters.
 // -----------------------------------------------------------------
 
@@ -13,7 +13,7 @@ using Newtonsoft.Json.Serialization;
 namespace FastPDFService.Models
 {
     /// <summary>
-    /// Represents rendering options for documents in the FastPDF service,
+    /// Represents rendering options for documents in the FastPDFService service,
     /// including layout, format, margins, and other rendering parameters.
     /// </summary>
     [JsonObject(NamingStrategyType = typeof(SnakeCaseNamingStrategy), ItemNullValueHandling = NullValueHandling.Ignore)]

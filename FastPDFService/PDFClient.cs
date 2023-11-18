@@ -3,7 +3,7 @@
 // Created on 15 Nov 2023 by K.Edeline
 // Description:
 //  The PDFClient.cs file is part of the FastPDFService library, a C# client 
-//  for interacting with the FastPDF service API. This file contains the PDFClient 
+//  for interacting with the FastPDFService API. This file contains the PDFClient 
 //  class, which provides methods for various PDF operations like rendering, splitting, 
 //  merging, compressing, and converting web content or images to PDF. It also includes 
 //  functionality for working with templates, stylesheets, and images in the context 
@@ -29,7 +29,7 @@ using FastPDFService.Models;
 namespace FastPDFService
 {
     /// <summary>
-    /// The PDFClient class designed to facilitate interactions with the FastPDF service's API.
+    /// The PDFClient class designed to facilitate interactions with the FastPDFService API.
     /// It encapsulates functionalities for creating, managing, and manipulating PDF documents.
     /// This includes rendering PDFs from templates or URLs, adding images and stylesheets to templates, 
     /// and performing various operations on existing PDF files like splitting, merging, and compressing.
