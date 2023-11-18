@@ -54,12 +54,13 @@ namespace FastPDFService
             _apiKey = apiKey;
             if (!string.IsNullOrEmpty(baseUrl))
             {
-                _settings.BaseUrl = baseUrl.EndsWith("/") ? baseUrl + apiVersion : baseUrl + "/" + apiVersion;
+                _settings.RootBaseUrl = baseUrl;
             }
             if (!string.IsNullOrEmpty(apiVersion))
             {
                 _settings.ApiVersion = apiVersion;
             }
+            _settings.BuildBaseUrl();
             _httpClient = new HttpClient();
             _inspector =  new ContentInspectorBuilder
             {
@@ -459,8 +460,6 @@ namespace FastPDFService
             var fileContent = await File.ReadAllBytesAsync(filePath);
             return await RenderImageAsync(fileContent, renderOptions);
         }
-
-        
 
         /// <summary>
         /// Asynchronously renders an image from a file path with optional rendering options.

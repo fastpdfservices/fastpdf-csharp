@@ -11,7 +11,12 @@ public class PdfClientSettings
     /// <summary>
     /// The base URL for the PDF service.
     /// </summary>
-    public string BaseUrl { get; set; } = "https://data.fastpdfservice.com";
+    public string BaseUrl { get; set; } = "";
+
+    /// <summary>
+    /// The root base URL from which the base URL will be built.
+    /// </summary>
+    public string RootBaseUrl { get; set; } = "https://data.fastpdfservice.com";
     
     /// <summary>
     /// The version of the API to use.
@@ -43,4 +48,12 @@ public class PdfClientSettings
         "isbn10", "isbn13", "issn", "itf", "jan", "nw-7", "pzn", "upc",
         "upca"
     };
+
+    /// <summary>
+    /// Generates the base URL for the PDF service.
+    /// </summary>
+    public void BuildBaseUrl()
+    {
+        BaseUrl = RootBaseUrl.EndsWith("/") ? RootBaseUrl + ApiVersion : RootBaseUrl + "/" + ApiVersion;
+    }
 }
