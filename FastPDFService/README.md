@@ -2,6 +2,8 @@
 
 Welcome to **FastPDFService** C# Package, the versatile and quick solution for your PDF rendering needs. This package is a SDK for https://fastpdfservice.com REST API. Requires .NET 6.0 or newer.
 
+*You have to register to [fastpdfservice.com](https://fastpdfservice.com) to obtain an API key*
+
 ## Overview
 
 `FastPDFService` is a C# package designed to simplify the PDF generation process. It streamlines the procedure of rendering HTML/CSS templates into a PDF document, offering granular control over the rendering options, and provides the ability to add images and barcodes into your PDFs.
@@ -197,7 +199,7 @@ setting the `style` property html tags, or by writing your css classes in the he
 ```
 
 
-Alternatively, you can use the `AddStylesheetAsync()` method to add a stylesheet to your template:
+Alternatively, you can use the `AddStylesheetAsync()` or `AddStylesheetFromFileAsync()` method to add a stylesheet to your template:
 
 
 ```C# {{ title: 'C#' }}
@@ -205,7 +207,7 @@ string stylesheetPath = "styles.css";
 StyleFile stylesheetData = new StyleFile { Format = "css" };
 
 string templateId = template.Id;
-await client.AddStylesheetAsync(templateId, stylesheetPath, stylesheetData);
+await client.AddStylesheetFromFileAsync(templateId, stylesheetPath, stylesheetData);
 ```
 
 
@@ -232,7 +234,7 @@ Template template = await client.AddTemplateAsync(templateContent, templateData)
 ```
 
 Then, we add an image to our template, and set the same image uri. 
-This step can be done from your [template dashboard](https://fastpdfservice.com/services/templates).
+This step can also be done from your [template dashboard](https://fastpdfservice.com/services/templates).
 
 
 ```C# {{ title: 'C#' }}
@@ -240,12 +242,11 @@ string imagePath = "my-logo.png";
 ImageFile imageData = new ImageFile { Format = "png", Uri = "my_favourite_logo" };
 
 string templateId = template.Id;
-await client.AddImageAsync(templateId, imagePath, imageData);
+await client.AddImageFromFileAsync(templateId, imagePath, imageData);
 ```
 
 
 Finally, we render our document. As usual, we define our rendering data object with our variable. 
-
 
 ```C# {{ title: 'C#' }}
 var documentData = new Dictionary<string, object>
