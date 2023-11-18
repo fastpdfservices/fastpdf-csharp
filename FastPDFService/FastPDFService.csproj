@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <Version>1.0.2</Version>
-    <Authors>Korian Edeline</Authors>
+    <Authors>Korian Edeline, Samir Benlafya</Authors>
     <Company>Fast PDF Service</Company>
     <Product>Fast PDF C# SDK (.NET 6.0)</Product>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
