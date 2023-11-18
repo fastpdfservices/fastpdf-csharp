@@ -28,27 +28,27 @@ namespace FastPDFService.Models
         /// <summary>
         /// Gets or sets the format of the image file.
         /// </summary>
-        public string Format { get; set; }
+        public string? Format { get; set; }
 
         /// <summary>
         /// Gets or sets the URI of the image file.
         /// </summary>
-        public string Uri { get; set; }
+        public string? Uri { get; set; }
 
         /// <summary>
         /// Gets or sets the description of the image file. Default is "fastpdf-csharp ImageFile".
         /// </summary>
-        public string Description { get; set; } = "fastpdf-csharp ImageFile";
+        public string? Description { get; set; } = "fastpdf-csharp ImageFile";
 
         /// <summary>
         /// Gets or sets the binary data of the image file.
         /// </summary>
-        public byte[] ImageFileData { get; set; }
+        public byte[]? ImageFileData { get; set; }
 
         /// <summary>
         /// Gets or sets the unique identifier of the image file.
         /// </summary>
-        public string Id { get; set; }
+        public string? Id { get; set; }
 
         /// <summary>
         /// Gets or sets an optional numerical value associated with the image file.
@@ -58,17 +58,17 @@ namespace FastPDFService.Models
         /// <summary>
         /// Gets or sets the timestamp of the image file.
         /// </summary>
-        public DateTime Timestamp { get; set; }
+        public DateTime? Timestamp { get; set; }
 
         /// <summary>
         /// Gets or sets the identifier of the template associated with the image file.
         /// </summary>
-        public string TemplateId { get; set; }
+        public string? TemplateId { get; set; }
 
         /// <summary>
         /// Gets or sets the filename of the image file.
         /// </summary>
-        public string Filename { get; set; }
+        public string? Filename { get; set; }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ImageFile"/> class.
@@ -108,7 +108,7 @@ namespace FastPDFService.Models
         }
 
         /// <inheritdoc/>
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             if (obj is ImageFile other)
             {
@@ -132,14 +132,16 @@ namespace FastPDFService.Models
             var hash2 = HashCode.Combine(TemplateId, Filename);
             return HashCode.Combine(hash1, hash2);
         }
-
+        
         /// <inheritdoc/>
         public override string ToString()
         {
+            var templateFileData = ImageFileData != null 
+                ? BitConverter.ToString(ImageFileData)[..Math.Min(20, ImageFileData.Length)] + "..." 
+                : "null";
             return $"ImageFile {{ Format = {Format}, Uri = {Uri}, Description = {Description}, " +
-                $"ImageFileData = [{(ImageFileData != null ? BitConverter.ToString(ImageFileData).Substring(0, Math.Min(20, ImageFileData.Length)) + "..." : "null")}], " +
-                $"Id = {Id}, Number = {Number}, Timestamp = {Timestamp}, TemplateId = {TemplateId}, Filename = {Filename} }}";
+                $"ImageFileData = [{templateFileData}], Id = {Id}, Number = {Number}, Timestamp = {Timestamp}, " +
+                $"TemplateId = {TemplateId}, Filename = {Filename} }}";
         }
-        
     }
 }

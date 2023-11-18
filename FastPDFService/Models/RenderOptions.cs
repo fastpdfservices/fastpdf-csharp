@@ -22,12 +22,12 @@ namespace FastPDFService.Models
         /// <summary>
         /// Gets or sets the templating engine to be used for rendering.
         /// </summary>
-        public string TemplatingEngine { get; set; }
+        public string? TemplatingEngine { get; set; }
 
         /// <summary>
         /// Gets or sets the rendering engine.
         /// </summary>
-        public string RenderingEngine { get; set; }
+        public string? RenderingEngine { get; set; }
 
         /// <summary>
         /// Gets or sets a value indicating whether to display header and footer.
@@ -37,12 +37,12 @@ namespace FastPDFService.Models
         /// <summary>
         /// Gets or sets the byte array of the header file.
         /// </summary>
-        public byte[] HeaderFile { get; set; }
+        public byte[]? HeaderFile { get; set; }
 
         /// <summary>
         /// Gets or sets the byte array of the footer file.
         /// </summary>
-        public byte[] FooterFile { get; set; }
+        public byte[]? FooterFile { get; set; }
 
         /// <summary>
         /// Gets or sets a value indicating whether the orientation is landscape.
@@ -52,7 +52,7 @@ namespace FastPDFService.Models
         /// <summary>
         /// Gets or sets the paper format (e.g., "A4", "Letter").
         /// </summary>
-        public string PaperFormat { get; set; }
+        public string? PaperFormat { get; set; }
 
         /// <summary>
         /// Gets or sets a value indicating whether the background should be rendered.
@@ -62,7 +62,7 @@ namespace FastPDFService.Models
         /// <summary>
         /// Gets or sets the page range for rendering.
         /// </summary>
-        public string PageRange { get; set; }
+        public string? PageRange { get; set; }
 
         /// <summary>
         /// Gets or sets the scale for rendering.
@@ -147,7 +147,7 @@ namespace FastPDFService.Models
         /// <summary>
         /// Gets or sets the image mode for rendering.
         /// </summary>
-        public string ImageMode { get; set; }
+        public string? ImageMode { get; set; }
 
         /// <summary>
         /// Gets or sets a value indicating whether compression is enabled.
@@ -162,7 +162,7 @@ namespace FastPDFService.Models
         /// <summary>
         /// Gets or sets the background color in RGB format.
         /// </summary>
-        public int[] BackgroundColor { get; set; }
+        public int[]? BackgroundColor { get; set; }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="RenderOptions"/> class.
@@ -199,7 +199,7 @@ namespace FastPDFService.Models
         }
 
         /// <inheritdoc/>
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             if (obj is RenderOptions other)
             {
@@ -275,15 +275,24 @@ namespace FastPDFService.Models
         /// <inheritdoc/>
         public override string ToString()
         {
+            var headerFile = HeaderFile != null 
+                ? BitConverter.ToString(HeaderFile)[..Math.Min(20, HeaderFile.Length)] + "..." 
+                : "null";
+            var footerFile = FooterFile != null 
+                ? BitConverter.ToString(FooterFile)[..Math.Min(20, FooterFile.Length)] + "..." 
+                : "null";
+            var backgroundColor = BackgroundColor != null ? string.Join(", ", BackgroundColor) : "null";
+            
             return $"RenderOptions {{ TemplatingEngine = {TemplatingEngine}, RenderingEngine = {RenderingEngine}, " +
-                $"DisplayHeaderFooter = {DisplayHeaderFooter}, HeaderFile = [{(HeaderFile != null ? BitConverter.ToString(HeaderFile).Substring(0, Math.Min(20, HeaderFile.Length)) + "..." : "null")}], " +
-                $"FooterFile = [{(FooterFile != null ? BitConverter.ToString(FooterFile).Substring(0, Math.Min(20, FooterFile.Length)) + "..." : "null")}], " +
-                $"Landscape = {Landscape}, PaperFormat = {PaperFormat}, Background = {Background}, PageRange = {PageRange}, " +
-                $"Scale = {Scale}, MarginTop = {MarginTop}, MarginRight = {MarginRight}, MarginBottom = {MarginBottom}, " +
-                $"MarginLeft = {MarginLeft}, PageNumberFooterEnabled = {PageNumberFooterEnabled}, TitleHeaderEnabled = {TitleHeaderEnabled}, " +
-                $"DateHeaderEnabled = {DateHeaderEnabled}, X = {X}, Y = {Y}, W = {W}, H = {H}, Width = {Width}, Height = {Height}, " +
-                $"KeepRatio = {KeepRatio}, TextEnabled = {TextEnabled}, ImageMode = {ImageMode}, Compress = {Compress}, " +
-                $"TransparencyEnabled = {TransparencyEnabled}, BackgroundColor = [{(BackgroundColor != null ? string.Join(", ", BackgroundColor) : "null")}] }}";
+                $"DisplayHeaderFooter = {DisplayHeaderFooter}, HeaderFile = [{headerFile}], " +
+                $"FooterFile = [{footerFile}], Landscape = {Landscape}, PaperFormat = {PaperFormat}, " +
+                $"Background = {Background}, PageRange = {PageRange}, Scale = {Scale}, MarginTop = {MarginTop}, " +
+                $"MarginRight = {MarginRight}, MarginBottom = {MarginBottom}, MarginLeft = {MarginLeft}, " +
+                $"PageNumberFooterEnabled = {PageNumberFooterEnabled}, TitleHeaderEnabled = {TitleHeaderEnabled}, " +
+                $"DateHeaderEnabled = {DateHeaderEnabled}, X = {X}, Y = {Y}, W = {W}, H = {H}, Width = {Width}, " +
+                $"Height = {Height}, KeepRatio = {KeepRatio}, TextEnabled = {TextEnabled}, ImageMode = {ImageMode}, " +
+                $"Compress = {Compress}, TransparencyEnabled = {TransparencyEnabled}, " +
+                $"BackgroundColor = [{backgroundColor}] }}";
         }
     }
 }

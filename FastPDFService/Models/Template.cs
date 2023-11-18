@@ -26,52 +26,52 @@ namespace FastPDFService.Models
         /// <summary>
         /// Gets or sets the name of the template.
         /// </summary>
-        public string Name { get; set; }
+        public string? Name { get; set; }
 
         /// <summary>
         /// Gets or sets the format of the template. Default is "html".
         /// </summary>
-        public string Format { get; set; } = "html";
+        public string? Format { get; set; } = "html";
 
         /// <summary>
         /// Gets or sets the description of the template. Default is "fastpdf-csharp Template".
         /// </summary>
-        public string Description { get; set; } = "fastpdf-csharp Template";
+        public string? Description { get; set; } = "fastpdf-csharp Template";
 
         /// <summary>
         /// Gets or sets the unique identifier of the template.
         /// </summary>
-        public string Id { get; set; }
+        public string? Id { get; set; }
 
         /// <summary>
         /// Gets or sets the timestamp of the template.
         /// </summary>
-        public DateTime Timestamp { get; set; }
+        public DateTime? Timestamp { get; set; }
 
         /// <summary>
         /// Gets or sets the main template file.
         /// </summary>
-        public TemplateFile TemplateFile { get; set; }
+        public TemplateFile? TemplateFile { get; set; }
 
         /// <summary>
         /// Gets or sets the header file for the template.
         /// </summary>
-        public TemplateFile HeaderFile { get; set; }
+        public TemplateFile? HeaderFile { get; set; }
 
         /// <summary>
         /// Gets or sets the footer file for the template.
         /// </summary>
-        public TemplateFile FooterFile { get; set; }
+        public TemplateFile? FooterFile { get; set; }
 
         /// <summary>
         /// Gets or sets the array of image files associated with the template.
         /// </summary>
-        public ImageFile[] ImageFiles { get; set; }
+        public ImageFile[]? ImageFiles { get; set; }
 
         /// <summary>
         /// Gets or sets the array of stylesheet files associated with the template.
         /// </summary>
-        public StyleFile[] StyleFiles { get; set; }
+        public StyleFile[]? StyleFiles { get; set; }
 
         /// <summary>
         /// Gets or sets whether the template should be rendered in landscape orientation.
@@ -81,7 +81,7 @@ namespace FastPDFService.Models
         /// <summary>
         /// Gets or sets the paper format for the template.
         /// </summary>
-        public string PaperFormat { get; set; }
+        public string? PaperFormat { get; set; }
 
         /// <summary>
         /// Gets or sets whether to print background graphics in the rendered document.
@@ -91,7 +91,7 @@ namespace FastPDFService.Models
         /// <summary>
         /// Gets or sets the page range for rendering. Defines specific pages or ranges to render.
         /// </summary>
-        public string PageRange { get; set; }
+        public string? PageRange { get; set; }
 
         /// <summary>
         /// Gets or sets the scale factor for rendering the template.
@@ -176,7 +176,7 @@ namespace FastPDFService.Models
         }
 
         /// <inheritdoc/>
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             if (obj is Template other)
             {
