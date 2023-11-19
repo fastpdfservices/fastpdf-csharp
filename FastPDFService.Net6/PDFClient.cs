@@ -1,14 +1,35 @@
 ﻿// -----------------------------------------------------------------
 // PDFClient.cs
-// Created on 15 Nov 2023 by K.Edeline
-// Description:
-//  The PDFClient.cs file is part of the FastPDFService library, a C# client 
-//  for interacting with the FastPDFService API. This file contains the PDFClient 
-//  class, which provides methods for various PDF operations like rendering, splitting, 
-//  merging, compressing, and converting web content or images to PDF. It also includes 
-//  functionality for working with templates, stylesheets, and images in the context 
-//  of PDF generation.
+// Created on 19 Nov 2023 by K.Edeline
 // -----------------------------------------------------------------
+//
+// Description:
+// The PDFClient.cs file contains the PDFClient class, which serves as 
+// the main entry point for interacting with the FastPDFService API. 
+// This class encapsulates the core functionalities for creating, 
+// managing, and manipulating PDF documents, providing methods for 
+// rendering PDFs from templates or URLs, adding images and stylesheets 
+// to templates, and performing various operations on existing PDF files 
+// such as splitting, merging, and compressing.
+//
+// The PDFClient class is designed for ease of use, abstracting the 
+// complexities of the API interactions and providing a straightforward, 
+// object-oriented interface for client applications.
+//
+// Usage:
+// To use the PDFClient, instantiate it with the required API key and 
+// optional base URL and API version. The client provides methods that 
+// correspond to various functionalities offered by the FastPDFService API.
+//
+// Get your API KEY at: https://fastpdfservice.com
+// Documentation available at: https://docs.fastpdfservice.com
+//
+// Example:
+// var pdfClient = new PDFClient("your-api-key", "api-base-url", "api-version");
+// byte[] pdfContent = pdfClient.RenderFromTemplate(templateContent, renderData);
+//
+// -------------------------------------------------------------------------------
+
 
 using System;
 using System.IO;
@@ -36,7 +57,7 @@ namespace FastPDFService
     /// 
     /// For more information, visit: https://docs.fastpdfservice.com
     /// </summary>
-    public class PDFClient
+    public class PDFClient : IPDFService
     {
         private readonly HttpClient _httpClient;
         private readonly string _apiKey;
@@ -49,9 +70,9 @@ namespace FastPDFService
         public Encoding Encoding { get; set; } = Encoding.Unicode;
 
         /// <summary>
-        /// Constructs a PDFClient with the provided API key, base URL, and API version.
+        /// Initializes a new instance of the PDFClient with the specified API key and optional settings.
         /// </summary>
-        /// <param name="apiKey">The API key to authenticate requests.</param>
+        /// <param name="apiKey">The API key for authenticating with the FastPDFService API. Obtainable at https://fastpdfservice.com </param>
         /// <param name="baseUrl">The base URL for the PDF service.</param>
         /// <param name="apiVersion">The version of the API to use.</param>
         public PDFClient(string apiKey, string? baseUrl = null, string? apiVersion = null)

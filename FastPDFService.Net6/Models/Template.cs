@@ -1,9 +1,34 @@
 // -----------------------------------------------------------------
 // Template.cs
-// Created on 15 Nov 2023 by K.Edeline
-// Description:
-//     Represents a template used in FastPDFService.
+// Created on 19 Nov 2023 by K.Edeline
 // -----------------------------------------------------------------
+//
+// Description:
+// The Template.cs file contains the Template class, which represents 
+// a PDF template in the FastPDFService library. This class is used to 
+// define the structure and properties of a PDF template, such as its 
+// name, format, and related files (like header and footer files). 
+// The Template class is a key component in the PDF rendering process, 
+// allowing users to specify the template details for generating PDF documents.
+//
+// Usage:
+// The Template class is typically used when creating or updating PDF 
+// templates in the FastPDFService. It provides a structured way to 
+// specify template details that are then used by the service to render PDFs.
+//
+// Get your API KEY at: https://fastpdfservice.com
+// Documentation available at: https://docs.fastpdfservice.com
+//
+// Example:
+// var template = new Template
+// {
+//     Name = "MyTemplate",
+//     Format = "html",
+//     TitleHeaderEnabled = true,
+//     // Other properties...
+// };
+//
+// -------------------------------------------------------------------------------
 
 
 using System;
