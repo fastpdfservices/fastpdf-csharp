@@ -1,0 +1,34 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <Version>1.0.2</Version>
+    <Authors>Korian Edeline, Samir Benlafya</Authors>
+    <Company>Fast PDF Service</Company>
+    <Product>Fast PDF C# SDK (.NET Standard 2.0)</Product>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <RepositoryUrl>https://github.com/fastpdfservices/fastpdf-csharp</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageTags>PDF;Document;API;HTML to PDF</PackageTags>
+    <Description>PDF generation, transformation and rendering, incl. HTML to PDF. Online template support.
+    This package is a SDK for the fastpdfservice.com API.</Description>
+    <NeutralLanguage>en</NeutralLanguage>
+    <PackageProjectUrl>https://docs.fastpdfservice.com</PackageProjectUrl>
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+
+
+    <TargetFramework>netstandard2.1</TargetFramework>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <DocumentationFile>bin\$(Configuration)\$(TargetFramework)\$(AssemblyName).xml</DocumentationFile>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageIcon>icon.png</PackageIcon>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Mime-Detective" Version="23.10.1" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+    <None Include="README.md" Pack="true" PackagePath="" />
+     <None Include="ressources/icon.png" Pack="true" PackagePath="" />
+  </ItemGroup>
+
+</Project>
