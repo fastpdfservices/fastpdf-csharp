@@ -44,7 +44,7 @@ namespace FastPDFService
         private readonly PdfClientSettings _settings = new PdfClientSettings();
 
         /// <summary>
-        /// The encoding of input strings (default: UTF-8)
+        /// The encoding of input strings (default: Unicode/UTF16)
         /// </summary>
         public Encoding Encoding { get; set; } = Encoding.Unicode;
 
@@ -99,7 +99,7 @@ namespace FastPDFService
         {
             if (!string.IsNullOrEmpty(filePath))
             {
-                await File.WriteAllBytesAsync(filePath, content);
+                await Task.Run(() => File.WriteAllBytes(filePath, content));
             }
         }
 
@@ -111,14 +111,20 @@ namespace FastPDFService
         public List<byte[]> Extract(byte[] zipBytes)
         {
             var files = new List<byte[]>();
-            using var zipStream = new MemoryStream(zipBytes);
-            using var archive = new ZipArchive(zipStream);
-            foreach (var entry in archive.Entries)
-            {
-                using var entryStream = entry.Open();
-                using var outputStream = new MemoryStream();
-                entryStream.CopyTo(outputStream);
-                files.Add(outputStream.ToArray());
+            using (var zipStream = new MemoryStream(zipBytes)) {
+                using (var archive = new ZipArchive(zipStream)) {
+                    foreach (var entry in archive.Entries)
+                    {
+                        using (var entryStream = entry.Open())
+                        {
+                            using (var outputStream = new MemoryStream())
+                            {
+                                entryStream.CopyTo(outputStream);
+                                files.Add(outputStream.ToArray());
+                            }
+                        }
+                    }
+                }
             }
 
             return files;
@@ -133,16 +139,23 @@ namespace FastPDFService
         public async Task<List<byte[]>> ExtractAsync(byte[] zipBytes)
         {
             var files = new List<byte[]>();
-            using var zipStream = new MemoryStream(zipBytes);
-            using var archive = new ZipArchive(zipStream);
-            foreach (var entry in archive.Entries)
+            using (var zipStream = new MemoryStream(zipBytes))
             {
-                await using var entryStream = entry.Open();
-                using var outputStream = new MemoryStream();
-                await entryStream.CopyToAsync(outputStream);
-                files.Add(outputStream.ToArray());
+                using (var archive = new ZipArchive(zipStream))
+                {
+                    foreach (var entry in archive.Entries)
+                    {
+                        using (var entryStream = entry.Open())
+                        {
+                            using (var outputStream = new MemoryStream())
+                            {
+                                await entryStream.CopyToAsync(outputStream);
+                                files.Add(outputStream.ToArray());
+                            }
+                        }
+                    }
+                }
             }
-
             return files;
         }
 
@@ -153,21 +166,29 @@ namespace FastPDFService
         /// <param name="outputPath">The path of the output directory where the files should be saved.</param>
         public void ExtractToDirectory(byte[] zipBytes, string outputPath)
         {
-            using var zipStream = new MemoryStream(zipBytes);
-            using var archive = new ZipArchive(zipStream);
-            foreach (var entry in archive.Entries)
+            using (var zipStream = new MemoryStream(zipBytes))
             {
-                var completeFilePath = Path.Combine(outputPath, entry.FullName);
-                var directoryPath = Path.GetDirectoryName(completeFilePath);
-
-                if (!Directory.Exists(directoryPath))
+                using (var archive = new ZipArchive(zipStream))
                 {
-                    Directory.CreateDirectory(directoryPath!);
-                }
+                    foreach (var entry in archive.Entries)
+                    {
+                        var completeFilePath = Path.Combine(outputPath, entry.FullName);
+                        var directoryPath = Path.GetDirectoryName(completeFilePath);
 
-                using var fileStream = new FileStream(completeFilePath, FileMode.Create);
-                using var entryStream = entry.Open();
-                entryStream.CopyTo(fileStream);
+                        if (!Directory.Exists(directoryPath))
+                        {
+                            Directory.CreateDirectory(directoryPath);
+                        }
+
+                        using (var fileStream = new FileStream(completeFilePath, FileMode.Create))
+                        {
+                            using (var entryStream = entry.Open())
+                            {
+                                entryStream.CopyTo(fileStream);
+                            }
+                        }
+                    }
+                }
             }
         }
 
@@ -179,21 +200,29 @@ namespace FastPDFService
         /// <returns>A Task representing the asynchronous operation.</returns>
         public async Task ExtractToDirectoryAsync(byte[] zipBytes, string outputPath)
         {
-            using var zipStream = new MemoryStream(zipBytes);
-            using var archive = new ZipArchive(zipStream);
-            foreach (var entry in archive.Entries)
+            using (var zipStream = new MemoryStream(zipBytes))
             {
-                var completeFilePath = Path.Combine(outputPath, entry.FullName);
-                var directoryPath = Path.GetDirectoryName(completeFilePath);
-
-                if (!Directory.Exists(directoryPath))
+                using (var archive = new ZipArchive(zipStream))
                 {
-                    Directory.CreateDirectory(directoryPath!);
-                }
+                    foreach (var entry in archive.Entries)
+                    {
+                        var completeFilePath = Path.Combine(outputPath, entry.FullName);
+                        var directoryPath = Path.GetDirectoryName(completeFilePath);
 
-                await using var fileStream = new FileStream(completeFilePath, FileMode.Create);
-                await using var entryStream = entry.Open();
-                await entryStream.CopyToAsync(fileStream);
+                        if (!Directory.Exists(directoryPath))
+                        {
+                            Directory.CreateDirectory(directoryPath);
+                        }
+
+                        using (var fileStream = new FileStream(completeFilePath, FileMode.Create))
+                        {
+                            using (var entryStream = entry.Open())
+                            {
+                                await entryStream.CopyToAsync(fileStream);
+                            }
+                        }
+                    }
+                }
             }
         }
 
@@ -217,7 +246,7 @@ namespace FastPDFService
         /// <returns>A byte array representing the split PDF.</returns>
         public async Task<byte[]> SplitFromFileAsync(string filePath, List<int> splits)
         {
-            var fileContent = await File.ReadAllBytesAsync(filePath);
+            var fileContent = await Task.Run(() => File.ReadAllBytes(filePath));
             return await SplitAsync(fileContent, splits);
         }
 
@@ -240,12 +269,12 @@ namespace FastPDFService
         /// <returns>A Task representing the asynchronous operation, containing a byte array of the split PDF.</returns>
         public async Task<byte[]> SplitAsync(byte[] fileContent, List<int> splits)
         {
-            using var content = new MultipartFormDataContent
+            using (var content = new MultipartFormDataContent())
             {
-                { GetPDFByteArray(fileContent), "file", "file.pdf" },
-                { new StringContent(JsonConvert.SerializeObject(splits)), "splits" }
-            };
-            return await PostAsync($"{_settings.BaseUrl}/pdf/split", content);
+                content.Add(GetPDFByteArray(fileContent), "file", "file.pdf");
+                content.Add(new StringContent(JsonConvert.SerializeObject(splits)), "splits");
+                return await PostAsync($"{_settings.BaseUrl}/pdf/split", content);
+            }
         }
 
         /// <summary>
@@ -256,7 +285,7 @@ namespace FastPDFService
         /// <returns>A Task representing the asynchronous operation, containing a byte array of the PDF with updated metadata.</returns>
         public async Task<byte[]> EditMetadataFromFileAsync(string filePath, Dictionary<string, string> metadata)
         {
-            var fileContent = await File.ReadAllBytesAsync(filePath);
+            var fileContent = await Task.Run(() => File.ReadAllBytes(filePath));
             return await EditMetadataAsync(fileContent, metadata);
         }
 
@@ -279,12 +308,12 @@ namespace FastPDFService
         /// <returns>A Task representing the asynchronous operation, containing a byte array of the PDF with updated metadata.</returns>
         public async Task<byte[]> EditMetadataAsync(byte[] fileContent, Dictionary<string, string> metadata)
         {
-            using var content = new MultipartFormDataContent
+            using (var content = new MultipartFormDataContent())
             {
-                { GetPDFByteArray(fileContent), "file", "file.pdf" },
-                { new StringContent(JsonConvert.SerializeObject(metadata)), "metadata" }
+                content.Add(GetPDFByteArray(fileContent), "file", "file.pdf" );
+                content.Add( new StringContent(JsonConvert.SerializeObject(metadata)), "metadata");
+                return await PostAsync($"{_settings.BaseUrl}/pdf/metadata", content);
             };
-            return await PostAsync($"{_settings.BaseUrl}/pdf/metadata", content);
         }
 
         /// <summary>
@@ -299,14 +328,15 @@ namespace FastPDFService
                 throw new ArgumentException("The number of files to merge should be between 2 and 100.");
             }
 
-            using var content = new MultipartFormDataContent();
-            for (var i = 0; i < filePaths.Count; i++)
+            using (var content = new MultipartFormDataContent())
             {
-                var fileBytes = await File.ReadAllBytesAsync(filePaths[i]);
-                content.Add(GetPDFByteArray(fileBytes), $"file{i}", "file.pdf");
+                for (var i = 0; i < filePaths.Count; i++)
+                {
+                    var fileBytes = await Task.Run(() => File.ReadAllBytes(filePaths[i]));
+                    content.Add(GetPDFByteArray(fileBytes), $"file{i}", "file.pdf");
+                }
+                return await MergeAsync(content);
             }
-
-            return await MergeAsync(content);
         }
 
         /// <summary>
@@ -338,13 +368,15 @@ namespace FastPDFService
                 throw new ArgumentException("The number of files to merge should be between 2 and 100.");
             }
 
-            using var content = new MultipartFormDataContent();
-            for (var i = 0; i < fileContents.Count; i++)
+            using (var content = new MultipartFormDataContent())
             {
-                content.Add(GetPDFByteArray(fileContents[i]), $"file{i}", "file.pdf");
-            }
+                for (var i = 0; i < fileContents.Count; i++)
+                {
+                    content.Add(GetPDFByteArray(fileContents[i]), $"file{i}", "file.pdf");
+                }
 
-            return await MergeAsync(content);
+                return await MergeAsync(content);
+            }
         }
 
         /// <summary>
@@ -356,7 +388,7 @@ namespace FastPDFService
         /// <returns>A Task representing the asynchronous operation, containing a byte array of the zip file of split PDFs.</returns>
         public async Task<byte[]> SplitZipFromFileAsync(string filePath, List<List<int>> splits)
         {
-            var fileContent = await File.ReadAllBytesAsync(filePath);
+            var fileContent = await Task.Run(() => File.ReadAllBytes(filePath));
             return await SplitZipAsync(fileContent, splits);
         }
 
@@ -381,13 +413,12 @@ namespace FastPDFService
         /// <returns>A Task representing the asynchronous operation, containing a byte array of the zip file of split PDFs.</returns>
         public async Task<byte[]> SplitZipAsync(byte[] fileContent, List<List<int>> splits)
         {
-            using var content = new MultipartFormDataContent
+            using (var content = new MultipartFormDataContent())
             {
-                { GetPDFByteArray(fileContent), "file", "file.pdf" },
-                { new StringContent(JsonConvert.SerializeObject(splits)), "splits" }
+                content.Add(GetPDFByteArray(fileContent), "file", "file.pdf");
+                content.Add(new StringContent(JsonConvert.SerializeObject(splits)), "splits");
+                return await PostAsync($"{_settings.BaseUrl}/pdf/split-zip", content);
             };
-
-            return await PostAsync($"{_settings.BaseUrl}/pdf/split-zip", content);
         }
 
         /// <summary>
@@ -398,7 +429,7 @@ namespace FastPDFService
         /// <returns>A Task representing the asynchronous operation, containing the byte array of the converted image.</returns>
         public async Task<byte[]> ToImageFromFileAsync(string filePath, string outputFormat)
         {
-            var fileContent = await File.ReadAllBytesAsync(filePath);
+            var fileContent = await Task.Run(() => File.ReadAllBytes(filePath));
             return await ToImageAsync(fileContent, outputFormat);
         }
 
@@ -427,11 +458,11 @@ namespace FastPDFService
                 throw new ArgumentException($"Unsupported output format. Must be one of: {string.Join(", ", _settings.SupportedImageFormats)}");
             }
 
-            using var content = new MultipartFormDataContent
+            using (var content = new MultipartFormDataContent())
             {
-                { GetPDFByteArray(fileContent), "file", "file.pdf" }
-            };
-            return await PostAsync($"{_settings.BaseUrl}/pdf/image/{outputFormat}", content);
+                content.Add(GetPDFByteArray(fileContent), "file", "file.pdf");
+                return await PostAsync($"{_settings.BaseUrl}/pdf/image/{outputFormat}", content);
+            }
         }
 
         /// <summary>
@@ -442,7 +473,7 @@ namespace FastPDFService
         /// <returns>A Task representing the asynchronous operation, containing the byte array of the compressed file.</returns>
         public async Task<byte[]> CompressFromFileAsync(string filePath, Dictionary<string, bool> options = null)
         {
-            var fileContent = await File.ReadAllBytesAsync(filePath);
+            var fileContent = await Task.Run(() => File.ReadAllBytes(filePath));
             return await CompressAsync(fileContent, options);
         }
 
@@ -465,17 +496,16 @@ namespace FastPDFService
         /// <returns>A Task representing the asynchronous operation, containing the byte array of the compressed file.</returns>
         public async Task<byte[]> CompressAsync(byte[] fileContent, Dictionary<string, bool> options = null)
         {
-            using var content = new MultipartFormDataContent
+            using (var content = new MultipartFormDataContent())
             {
-                { GetPDFByteArray(fileContent), "file", "file.pdf" }
-            };
+                content.Add(GetPDFByteArray(fileContent), "file", "file.pdf");
+                if (options != null)
+                {
+                    content.Add(new StringContent(JsonConvert.SerializeObject(options)), "options");
+                }
 
-            if (options != null)
-            {
-                content.Add(new StringContent(JsonConvert.SerializeObject(options)), "options");
+                return await PostAsync($"{_settings.BaseUrl}/pdf/compress", content);
             }
-
-            return await PostAsync($"{_settings.BaseUrl}/pdf/compress", content);
         }
 
         /// <summary>
@@ -485,12 +515,11 @@ namespace FastPDFService
         /// <returns>A Task representing the asynchronous operation, containing the byte array of the converted PDF.</returns>
         public async Task<byte[]> UrlToPdfAsync(string url)
         {
-            using var content = new MultipartFormDataContent
+            using (var content = new MultipartFormDataContent())
             {
-                { new StringContent(url), "url" }
-            };
-
-            return await PostAsync($"{_settings.BaseUrl}/pdf/url", content);
+                content.Add(new StringContent(url), "url");
+                return await PostAsync($"{_settings.BaseUrl}/pdf/url", content);
+            }
         }
 
         /// <summary>
@@ -535,7 +564,7 @@ namespace FastPDFService
         /// <returns>A Task representing the asynchronous operation, containing the byte array of the rendered image.</returns>
         public async Task<byte[]> RenderImageFromFileAsync(string filePath, RenderOptions renderOptions = null)
         {
-            var fileContent = await File.ReadAllBytesAsync(filePath);
+            var fileContent = await Task.Run(() => File.ReadAllBytes(filePath));
             return await RenderImageAsync(fileContent, renderOptions);
         }
 
@@ -558,21 +587,23 @@ namespace FastPDFService
         /// <returns>A Task representing the asynchronous operation, containing the byte array of the rendered image.</returns>
         public async Task<byte[]> RenderImageAsync(byte[] fileContent, RenderOptions renderOptions = null)
         {
-            using var content = new MultipartFormDataContent();
-            var fileByteArrayContent = new ByteArrayContent(fileContent);
-            fileByteArrayContent.Headers.ContentType = new MediaTypeHeaderValue(GetFileMimeType(fileContent));
-            content.Add(fileByteArrayContent, "image", "image");
-
-            if (renderOptions == null)
+            using (var content = new MultipartFormDataContent())
             {
+                var fileByteArrayContent = new ByteArrayContent(fileContent);
+                fileByteArrayContent.Headers.ContentType = new MediaTypeHeaderValue(GetFileMimeType(fileContent));
+                content.Add(fileByteArrayContent, "image", "image");
+
+                if (renderOptions == null)
+                {
+                    return await PostAsync($"{_settings.BaseUrl}/render/img", content);
+                }
+                
+                var serializedObject = JsonConvert.SerializeObject(renderOptions);
+                var stringContent = new StringContent(serializedObject, Encoding.UTF8, "application/json");
+                content.Add(stringContent, "render_options"); // Adjust serialization if needed
+
                 return await PostAsync($"{_settings.BaseUrl}/render/img", content);
             }
-            
-            var serializedObject = JsonConvert.SerializeObject(renderOptions);
-            var stringContent = new StringContent(serializedObject, Encoding.UTF8, "application/json");
-            content.Add(stringContent, "render_options"); // Adjust serialization if needed
-
-            return await PostAsync($"{_settings.BaseUrl}/render/img", content);
         }
 
         /// <summary>
@@ -583,15 +614,17 @@ namespace FastPDFService
         /// <returns>A Task representing the asynchronous operation, containing the byte array of the rendered image.</returns>
         public async Task<byte[]> RenderImageFromIdAsync(string imageId, RenderOptions renderOptions = null)
         {
-            using var content = new MultipartFormDataContent();
-            if (renderOptions != null)
+            using (var content = new MultipartFormDataContent())
             {
-                var serializedObject = JsonConvert.SerializeObject(renderOptions);
-                var stringContent = new StringContent(serializedObject, Encoding.UTF8, "application/json");
-                content.Add(stringContent, "render_options"); // Adjust serialization if needed
+                if (renderOptions != null)
+                {
+                    var serializedObject = JsonConvert.SerializeObject(renderOptions);
+                    var stringContent = new StringContent(serializedObject, Encoding.UTF8, "application/json");
+                    content.Add(stringContent, "render_options"); // Adjust serialization if needed
+                }
+            
+                return await PostAsync($"{_settings.BaseUrl}/img/{imageId}", content);
             }
-        
-            return await PostAsync($"{_settings.BaseUrl}/img/{imageId}", content);
         }
 
         /// <summary>
@@ -634,22 +667,41 @@ namespace FastPDFService
             string headerFilePath = null, 
             string footerFilePath = null)
         {
-            using var fileContent = new StreamContent(File.OpenRead(filePath));
-            using var headerContent = headerFilePath != null ? new StreamContent(File.OpenRead(headerFilePath)) : null;
-            using var footerContent = footerFilePath != null ? new StreamContent(File.OpenRead(footerFilePath)) : null;
+            using (var fileContent = new StreamContent(File.OpenRead(filePath)))
+            {
+                StreamContent headerContent = null;
+                StreamContent footerContent = null;
 
-            var filename = Path.GetFileName(filePath);
-            var headerFilename = headerFilePath != null ? Path.GetFileName(headerFilePath) : null;
-            var footerFilename = footerFilePath != null ? Path.GetFileName(footerFilePath) : null;
+                try
+                {
+                    if (headerFilePath != null)
+                    {
+                        headerContent = new StreamContent(File.OpenRead(headerFilePath));
+                    }
+                    if (footerFilePath != null)
+                    {
+                        footerContent = new StreamContent(File.OpenRead(footerFilePath));
+                    }
 
-            return await AddTemplateAsync(
-                fileContent, 
-                templateData, 
-                headerContent, 
-                footerContent, 
-                filename, 
-                headerFilename, 
-                footerFilename);
+                    var filename = Path.GetFileName(filePath);
+                    var headerFilename = headerFilePath != null ? Path.GetFileName(headerFilePath) : null;
+                    var footerFilename = footerFilePath != null ? Path.GetFileName(footerFilePath) : null;
+
+                    return await AddTemplateAsync(
+                        fileContent, 
+                        templateData, 
+                        headerContent, 
+                        footerContent, 
+                        filename, 
+                        headerFilename, 
+                        footerFilename);
+                }
+                finally
+                {
+                    headerContent?.Dispose();
+                    footerContent?.Dispose();
+                }
+            }
         }
 
         /// <summary>
@@ -666,22 +718,41 @@ namespace FastPDFService
             byte[] headerFileContent = null, 
             byte[] footerFileContent = null)
         {
-            using var fileStreamContent = new ByteArrayContent(fileContent);
-            using var headerStreamContent = headerFileContent != null ? new ByteArrayContent(headerFileContent) : null;
-            using var footerStreamContent = footerFileContent != null ? new ByteArrayContent(footerFileContent) : null;
+            using (var fileStreamContent = new ByteArrayContent(fileContent))
+            {
+                ByteArrayContent headerStreamContent = null;
+                ByteArrayContent footerStreamContent = null;
 
-            var filename = "file." + templateData.Format;
-            const string headerFilename = "header.html";
-            const string footerFilename = "footer.html";
+                try
+                {
+                    if (headerFileContent != null)
+                    {
+                        headerStreamContent = new ByteArrayContent(headerFileContent);
+                    }
+                    if (footerFileContent != null)
+                    {
+                        footerStreamContent = new ByteArrayContent(footerFileContent);
+                    }
 
-            return await AddTemplateAsync(
-                fileStreamContent, 
-                templateData, 
-                headerStreamContent, 
-                footerStreamContent, 
-                filename, 
-                headerFilename, 
-                footerFilename);
+                    var filename = "file." + templateData.Format;
+                    const string headerFilename = "header.html";
+                    const string footerFilename = "footer.html";
+
+                    return await AddTemplateAsync(
+                        fileStreamContent, 
+                        templateData, 
+                        headerStreamContent, 
+                        footerStreamContent, 
+                        filename, 
+                        headerFilename, 
+                        footerFilename);
+                }
+                finally
+                {
+                    headerStreamContent?.Dispose();
+                    footerStreamContent?.Dispose();
+                }
+            }
         }
 
         /// <summary>
@@ -713,10 +784,11 @@ namespace FastPDFService
         /// added stylesheet.</returns>
         public async Task<StyleFile> AddStylesheetFromFileAsync(string templateId, string filePath, StyleFile styleFileData)
         {
-            using var fileContent = new StreamContent(File.OpenRead(filePath));
-            var filename = Path.GetFileName(filePath);
-
-            return await AddStylesheetAsync(templateId, fileContent, styleFileData, filename);
+            using (var fileContent = new StreamContent(File.OpenRead(filePath)))
+            {
+                var filename = Path.GetFileName(filePath);
+                return await AddStylesheetAsync(templateId, fileContent, styleFileData, filename);
+            }
         }
 
         /// <summary>
@@ -729,10 +801,11 @@ namespace FastPDFService
         /// stylesheet.</returns>
         public async Task<StyleFile> AddStylesheetAsync(string templateId, byte[] fileContent, StyleFile styleFileData)
         {
-            using var fileStreamContent = new ByteArrayContent(fileContent);
-            var filename = "file." + styleFileData.Format;
-
-            return await AddStylesheetAsync(templateId, fileStreamContent, styleFileData, filename);
+            using (var fileStreamContent = new ByteArrayContent(fileContent))
+            {
+                var filename = "file." + styleFileData.Format;
+                return await AddStylesheetAsync(templateId, fileStreamContent, styleFileData, filename);
+            }
         }
 
         /// <summary>
@@ -758,14 +831,16 @@ namespace FastPDFService
         /// image.</returns>
         public async Task<ImageFile> AddImageFromFileAsync(string templateId, string filePath, ImageFile imageFileData)
         {
-            var fileContent = await File.ReadAllBytesAsync(filePath);
+            var fileContent = await Task.Run(() => File.ReadAllBytes(filePath));
             var mimeType = GetFileMimeType(fileContent);
             var filename = Path.GetFileName(filePath);
-            using var fileStreamContent = new ByteArrayContent(fileContent);
-            fileStreamContent.Headers.ContentType = new MediaTypeHeaderValue(
-                string.IsNullOrEmpty(mimeType) ? "application/octet-stream" : mimeType);
+            using (var fileStreamContent = new ByteArrayContent(fileContent))
+            {
+                fileStreamContent.Headers.ContentType = new MediaTypeHeaderValue(
+                    string.IsNullOrEmpty(mimeType) ? "application/octet-stream" : mimeType);
 
-            return await AddImageAsync(templateId, fileStreamContent, imageFileData, filename);
+                return await AddImageAsync(templateId, fileStreamContent, imageFileData, filename);
+            }
         }
 
         /// <summary>
@@ -780,11 +855,13 @@ namespace FastPDFService
         {
             var mimeType = GetFileMimeType(fileContent);
             var filename = "image." + imageFileData.Format;
-            using var fileStreamContent = new ByteArrayContent(fileContent);
-            fileStreamContent.Headers.ContentType = new MediaTypeHeaderValue(
-                string.IsNullOrEmpty(mimeType) ? "application/octet-stream" : mimeType);
+            using (var fileStreamContent = new ByteArrayContent(fileContent))
+            {
+                fileStreamContent.Headers.ContentType = new MediaTypeHeaderValue(
+                    string.IsNullOrEmpty(mimeType) ? "application/octet-stream" : mimeType);
 
-            return await AddImageAsync(templateId, fileStreamContent, imageFileData, filename);
+                return await AddImageAsync(templateId, fileStreamContent, imageFileData, filename);
+            }
         }
 
         /// <summary>
@@ -904,18 +981,20 @@ namespace FastPDFService
             RenderOptions renderOptions = null, 
             string formatType = "pdf")
         {
-            using var content = new MultipartFormDataContent();
-            var renderDataJson = JsonConvert.SerializeObject(renderData);
-            content.Add(new StringContent(renderDataJson, Encoding.UTF8, "application/json"), "render_data");
-
-            if (renderOptions != null)
+            using (var content = new MultipartFormDataContent())
             {
-                var renderOptionsJson = JsonConvert.SerializeObject(renderOptions);
-                content.Add(new StringContent(renderOptionsJson, Encoding.UTF8, "application/json"), "render_options");
-            }
+                var renderDataJson = JsonConvert.SerializeObject(renderData);
+                content.Add(new StringContent(renderDataJson, Encoding.UTF8, "application/json"), "render_data");
 
-            formatType = formatType.ToLower();
-            return await PostAsync($"{_settings.BaseUrl}/render/{formatType}/{templateId}", content);
+                if (renderOptions != null)
+                {
+                    var renderOptionsJson = JsonConvert.SerializeObject(renderOptions);
+                    content.Add(new StringContent(renderOptionsJson, Encoding.UTF8, "application/json"), "render_options");
+                }
+
+                formatType = formatType.ToLower();
+                return await PostAsync($"{_settings.BaseUrl}/render/{formatType}/{templateId}", content);
+            }
         }
 
         /// <summary>
@@ -956,18 +1035,20 @@ namespace FastPDFService
             RenderOptions renderOptions = null, 
             string formatType = "pdf")
         {
-            using var content = new MultipartFormDataContent();
-            var renderDataJson = JsonConvert.SerializeObject(renderDataList);
-            content.Add(new StringContent(renderDataJson, Encoding.UTF8, "application/json"), "render_data");
-
-            if (renderOptions != null)
+            using (var content = new MultipartFormDataContent())
             {
-                var renderOptionsJson = JsonConvert.SerializeObject(renderOptions);
-                content.Add(new StringContent(renderOptionsJson, Encoding.UTF8, "application/json"), "render_options");
-            }
+                var renderDataJson = JsonConvert.SerializeObject(renderDataList);
+                content.Add(new StringContent(renderDataJson, Encoding.UTF8, "application/json"), "render_data");
 
-            formatType = formatType.ToLower();
-            return await PostAsync($"{_settings.BaseUrl}/render/{formatType}/batch/{templateId}", content);
+                if (renderOptions != null)
+                {
+                    var renderOptionsJson = JsonConvert.SerializeObject(renderOptions);
+                    content.Add(new StringContent(renderOptionsJson, Encoding.UTF8, "application/json"), "render_options");
+                }
+
+                formatType = formatType.ToLower();
+                return await PostAsync($"{_settings.BaseUrl}/render/{formatType}/batch/{templateId}", content);
+            }
         }
 
         /// <summary>
@@ -1032,18 +1113,20 @@ namespace FastPDFService
             RenderOptions renderOptions = null,
             string formatType = "pdf")
         {
-            using var templateFileBody = new ByteArrayContent(templateFileContent);
-            var headerFileBody = headerFileContent != null ? new ByteArrayContent(headerFileContent) : null;
-            var footerFileBody = footerFileContent != null ? new ByteArrayContent(footerFileContent) : null;
+            using (var templateFileBody = new ByteArrayContent(templateFileContent))
+            {
+                var headerFileBody = headerFileContent != null ? new ByteArrayContent(headerFileContent) : null;
+                var footerFileBody = footerFileContent != null ? new ByteArrayContent(footerFileContent) : null;
 
-            return await RenderInternalAsync(
-                templateFileBody, 
-                template, 
-                renderData, 
-                headerFileBody, 
-                footerFileBody, 
-                formatType, 
-                renderOptions);
+                return await RenderInternalAsync(
+                    templateFileBody, 
+                    template, 
+                    renderData, 
+                    headerFileBody, 
+                    footerFileBody, 
+                    formatType, 
+                    renderOptions);
+            }
         }
 
                 /// <summary>
@@ -1136,19 +1219,25 @@ namespace FastPDFService
             Template template = null,
             RenderOptions renderOptions = null)
         {
-            renderData ??= new Dictionary<string, object>();
-            using var templateFileBody = new ByteArrayContent(templateFileContent);
-            var headerFileBody = headerFileContent != null ? new ByteArrayContent(headerFileContent) : null;
-            var footerFileBody = footerFileContent != null ? new ByteArrayContent(footerFileContent) : null;
+            if (renderData == null)
+            {
+                renderData = new Dictionary<string, object>();
+            }
 
-            return await RenderInternalAsync(
-                templateFileBody, 
-                template, 
-                renderData, 
-                headerFileBody, 
-                footerFileBody, 
-                "pdf", 
-                renderOptions);
+            using (var templateFileBody = new ByteArrayContent(templateFileContent))
+            {
+                var headerFileBody = headerFileContent != null ? new ByteArrayContent(headerFileContent) : null;
+                var footerFileBody = footerFileContent != null ? new ByteArrayContent(footerFileContent) : null;
+
+                return await RenderInternalAsync(
+                    templateFileBody, 
+                    template, 
+                    renderData, 
+                    headerFileBody, 
+                    footerFileBody, 
+                    "pdf", 
+                    renderOptions);
+            }
         }
 
         /// <summary>
@@ -1494,12 +1583,14 @@ namespace FastPDFService
 
         private async Task<HttpResponseMessage> GetAsync(string url)
         {
-            using var request = new HttpRequestMessage(HttpMethod.Get, url);
-            request.Headers.Authorization = new AuthenticationHeaderValue(_apiKey);
+            using (var request = new HttpRequestMessage(HttpMethod.Get, url))
+            {
+                request.Headers.Authorization = new AuthenticationHeaderValue(_apiKey);
 
-            var response = await _httpClient.SendAsync(request);
-            await RaiseForStatusAsync(response);
-            return response;
+                var response = await _httpClient.SendAsync(request);
+                await RaiseForStatusAsync(response);
+                return response;
+            }
         }
         
         // Helper method for GET requests that expect a JSON response
@@ -1513,38 +1604,37 @@ namespace FastPDFService
         // PostAsync is a helper method for making POST requests
         private async Task<byte[]> PostAsync(string url, HttpContent content)
         {
-            using var request = new HttpRequestMessage(HttpMethod.Post, url)
+            using (var request = new HttpRequestMessage(HttpMethod.Post, url) { Content = content })
             {
-                Content = content
-            };
-            request.Headers.Authorization = new AuthenticationHeaderValue(_apiKey);
+                request.Headers.Authorization = new AuthenticationHeaderValue(_apiKey);
 
-            var response = await _httpClient.SendAsync(request);
-            await RaiseForStatusAsync(response);
-            return await response.Content.ReadAsByteArrayAsync();
+                var response = await _httpClient.SendAsync(request);
+                await RaiseForStatusAsync(response);
+                return await response.Content.ReadAsByteArrayAsync();
+            }
         }
 
         private async Task<string> PostAsyncString(string url, HttpContent content)
         {
-            using var request = new HttpRequestMessage(HttpMethod.Post, url)
+            using (var request = new HttpRequestMessage(HttpMethod.Post, url) { Content = content })
             {
-                Content = content
-            };
-            request.Headers.Authorization = new AuthenticationHeaderValue(_apiKey);
+                request.Headers.Authorization = new AuthenticationHeaderValue(_apiKey);
 
-            var response = await _httpClient.SendAsync(request);
-            await RaiseForStatusAsync(response);
-            return await response.Content.ReadAsStringAsync();
+                var response = await _httpClient.SendAsync(request);
+                await RaiseForStatusAsync(response);
+                return await response.Content.ReadAsStringAsync();
+            }
         }
 
         private async Task<bool> DeleteAsync(string url)
         {
-            using var request = new HttpRequestMessage(HttpMethod.Delete, url);
-            request.Headers.Authorization = new AuthenticationHeaderValue(_apiKey);
-
-            var response = await _httpClient.SendAsync(request);
-            await RaiseForStatusAsync(response);
-            return response.StatusCode == HttpStatusCode.NoContent;
+            using (var request = new HttpRequestMessage(HttpMethod.Delete, url))
+            {
+                request.Headers.Authorization = new AuthenticationHeaderValue(_apiKey);
+                var response = await _httpClient.SendAsync(request);
+                await RaiseForStatusAsync(response);
+                return response.StatusCode == HttpStatusCode.NoContent;
+            }
         }
 
         private static async Task RaiseForStatusAsync(HttpResponseMessage response)
@@ -1623,27 +1713,27 @@ namespace FastPDFService
             string headerFilename, 
             string footerFilename)
         {
-            using var content = new MultipartFormDataContent
+            using (var content = new MultipartFormDataContent())
             {
-                { fileRequestBody, "file_data", filename }
-            };
+                content.Add(fileRequestBody, "file_data", filename);
 
-            if (headerDataBody != null)
-            {
-                content.Add(headerDataBody, "header_data", headerFilename ?? string.Empty);
+                if (headerDataBody != null)
+                {
+                    content.Add(headerDataBody, "header_data", headerFilename ?? string.Empty);
+                }
+                if (footerDataBody != null)
+                {
+                    content.Add(footerDataBody, "footer_data", footerFilename ?? string.Empty);
+                }
+
+                var templateJson = JsonConvert.SerializeObject(templateData);
+                content.Add(new StringContent(templateJson, Encoding.UTF8, "application/json"), "template_data");
+
+                var response = await PostAsyncString($"{_settings.BaseUrl}/template", content);
+                return JsonConvert.DeserializeObject<Template>(response);
             }
-            if (footerDataBody != null)
-            {
-                content.Add(footerDataBody, "footer_data", footerFilename ?? string.Empty);
-            }
-
-            var templateJson = JsonConvert.SerializeObject(templateData);
-            content.Add(new StringContent(templateJson, Encoding.UTF8, "application/json"), "template_data");
-
-            var response = await PostAsyncString($"{_settings.BaseUrl}/template", content);
-            
-            return JsonConvert.DeserializeObject<Template>(response);
         }
+
         
         private async Task<StyleFile> AddStylesheetAsync(
             string templateId, 
@@ -1651,15 +1741,15 @@ namespace FastPDFService
             StyleFile styleFileData, 
             string filename)
         {
-            using var content = new MultipartFormDataContent
+             using (var content = new MultipartFormDataContent())
             {
-                { fileRequestBody, "file_data", filename }
-            };
-            var styleFileJson = JsonConvert.SerializeObject(styleFileData);
-            content.Add(new StringContent(styleFileJson, Encoding.UTF8, "application/json"), "template_data");
+                content.Add(fileRequestBody, "file_data", filename);
+                var styleFileJson = JsonConvert.SerializeObject(styleFileData);
+                content.Add(new StringContent(styleFileJson, Encoding.UTF8, "application/json"), "template_data");
 
-            var response = await PostAsyncString($"{_settings.BaseUrl}/template/css/{templateId}", content);
-            return JsonConvert.DeserializeObject<StyleFile>(response);
+                var response = await PostAsyncString($"{_settings.BaseUrl}/template/css/{templateId}", content);
+                return JsonConvert.DeserializeObject<StyleFile>(response);
+            }
         }
         
         private async Task<ImageFile> AddImageAsync(
@@ -1668,15 +1758,15 @@ namespace FastPDFService
             ImageFile imageFileData, 
             string filename)
         {
-            using var content = new MultipartFormDataContent
+            using (var content = new MultipartFormDataContent())
             {
-                { fileRequestBody, "file_data", filename }
-            };
-            var imageFileJson = JsonConvert.SerializeObject(imageFileData);
-            content.Add(new StringContent(imageFileJson, Encoding.UTF8, "application/json"), "template_data");
+                content.Add(fileRequestBody, "file_data", filename);
+                var imageFileJson = JsonConvert.SerializeObject(imageFileData);
+                content.Add(new StringContent(imageFileJson, Encoding.UTF8, "application/json"), "template_data");
 
-            var response = await PostAsyncString($"{_settings.BaseUrl}/template/img/{templateId}", content);
-            return JsonConvert.DeserializeObject<ImageFile>(response);
+                var response = await PostAsyncString($"{_settings.BaseUrl}/template/img/{templateId}", content);
+                return JsonConvert.DeserializeObject<ImageFile>(response);
+            }
         }
         
         private static Dictionary<string, object> ParseRenderDataObj(object obj)
@@ -1714,19 +1804,19 @@ namespace FastPDFService
 
         private static async Task<Dictionary<string, object>> ParseRenderDataObjAsync(string path)
         {
-            var fileContent = await File.ReadAllTextAsync(path);
+            var fileContent = await Task.Run(() => File.ReadAllText(path));
             return JsonConvert.DeserializeObject<Dictionary<string, object>>(fileContent);
         }
 
         private static async Task<List<Dictionary<string, object>>> ParseRenderDataListAsync(string path)
         {
-            var fileContent = await File.ReadAllTextAsync(path);
+            var fileContent = await Task.Run(() => File.ReadAllText(path));
             return JsonConvert.DeserializeObject<List<Dictionary<string, object>>>(fileContent);
         }
 
         private static async Task<byte[]> ReadFileAsync(string filePath)
         {
-            return await File.ReadAllBytesAsync(filePath);
+            return await Task.Run(() => File.ReadAllBytes(filePath));
         }
 
         private async Task<ByteArrayContent> ReadFileAsHttpContentAsync(string filePath)
@@ -1744,37 +1834,40 @@ namespace FastPDFService
             string formatType = "pdf",
             RenderOptions renderOptions = null)
         {
-            using var content = new MultipartFormDataContent
+            using (var content = new MultipartFormDataContent())
             {
-                { templateFileContent, "file_data", "file.html" } // Adjust filename as needed
-            };
-            var renderDataJson = JsonConvert.SerializeObject(renderData);
-            content.Add(new StringContent(renderDataJson, Encoding.UTF8, "application/json"), "render_data");
+                content.Add(templateFileContent, "file_data", "file.html");
+                var renderDataJson = JsonConvert.SerializeObject(renderData);
+                content.Add(new StringContent(renderDataJson, Encoding.UTF8, "application/json"), "render_data");
 
-            template ??= new Template
-            {
-                Name = "fastpdf-java document",
-                Format = "html",
-                TitleHeaderEnabled = false
-            };
-            var templateJson = JsonConvert.SerializeObject(template);
-            content.Add(new StringContent(templateJson, Encoding.UTF8, "application/json"), "template_data");
+                if (template == null)
+                {
+                    template = new Template
+                    {
+                        Name = "fastpdf-csharp document",
+                        Format = "html",
+                        TitleHeaderEnabled = false
+                    };
+                }
+                var templateJson = JsonConvert.SerializeObject(template);
+                content.Add(new StringContent(templateJson, Encoding.UTF8, "application/json"), "template_data");
 
-            if (headerFileContent != null)
-            {
-                content.Add(headerFileContent, "header_data", "header.html");
-            }
-            if (footerFileContent != null)
-            {
-                content.Add(footerFileContent, "footer_data", "footer.html");
-            }
-            if (renderOptions != null)
-            {
-                content.Add(new StringContent(JsonConvert.SerializeObject(renderOptions)), "render_options");
-            }
+                if (headerFileContent != null)
+                {
+                    content.Add(headerFileContent, "header_data", "header.html");
+                }
+                if (footerFileContent != null)
+                {
+                    content.Add(footerFileContent, "footer_data", "footer.html");
+                }
+                if (renderOptions != null)
+                {
+                    content.Add(new StringContent(JsonConvert.SerializeObject(renderOptions)), "render_options");
+                }
 
-            formatType = formatType.ToLower();
-            return await PostAsync($"{_settings.BaseUrl}/render/{formatType}", content);
+                formatType = formatType.ToLower();
+                return await PostAsync($"{_settings.BaseUrl}/render/{formatType}", content);
+            }
         }
         
         private async Task<byte[]> RenderManyInternalAsync(
@@ -1786,42 +1879,45 @@ namespace FastPDFService
             RenderOptions renderOptions, 
             string formatType)
         {
-            using var content = new MultipartFormDataContent
+            using (var content = new MultipartFormDataContent())
             {
-                { new ByteArrayContent(templateFileContent), "file_data", $"file.{templateData?.Format ?? "html"}" }
+                content.Add(new ByteArrayContent(templateFileContent), "file_data", $"file.{templateData?.Format ?? "html"}");
+                if (templateData == null)
+                {
+                    templateData = new Template
+                    {
+                        Name = "fastpdf-csharp document",
+                        Format = "html",
+                        TitleHeaderEnabled = false
+                    };
+                }
+                var templateJson = JsonConvert.SerializeObject(templateData);
+                content.Add(new StringContent(templateJson, Encoding.UTF8, "application/json"), "template_data");
+
+                var renderDataJson = JsonConvert.SerializeObject(renderDataList ?? new List<Dictionary<string, object>>());
+                content.Add(new StringContent(renderDataJson, Encoding.UTF8, "application/json"), "render_data");
+
+                if (headerFileContent != null)
+                {
+                    content.Add(new ByteArrayContent(headerFileContent), "header_data", "header.html");
+                }
+
+                if (footerFileContent != null)
+                {
+                    content.Add(new ByteArrayContent(footerFileContent), "footer_data", "footer.html");
+                }
+
+                if (renderOptions != null)
+                {
+                    var renderOptionsJson = JsonConvert.SerializeObject(renderOptions);
+                    content.Add(new StringContent(renderOptionsJson, Encoding.UTF8, "application/json"), "render_options");
+                }
+
+                formatType = formatType.ToLowerInvariant();
+                var response = await PostAsync($"{_settings.BaseUrl}/render/{formatType}/batch", content);
+                return response;
+
             };
-
-            templateData ??= new Template
-            {
-                Name = "fastpdf-java document",
-                Format = "html",
-                TitleHeaderEnabled = false
-            };
-            var templateJson = JsonConvert.SerializeObject(templateData);
-            content.Add(new StringContent(templateJson, Encoding.UTF8, "application/json"), "template_data");
-
-            var renderDataJson = JsonConvert.SerializeObject(renderDataList ?? new List<Dictionary<string, object>>());
-            content.Add(new StringContent(renderDataJson, Encoding.UTF8, "application/json"), "render_data");
-
-            if (headerFileContent != null)
-            {
-                content.Add(new ByteArrayContent(headerFileContent), "header_data", "header.html");
-            }
-
-            if (footerFileContent != null)
-            {
-                content.Add(new ByteArrayContent(footerFileContent), "footer_data", "footer.html");
-            }
-
-            if (renderOptions != null)
-            {
-                var renderOptionsJson = JsonConvert.SerializeObject(renderOptions);
-                content.Add(new StringContent(renderOptionsJson, Encoding.UTF8, "application/json"), "render_options");
-            }
-
-            formatType = formatType.ToLowerInvariant();
-            var response = await PostAsync($"{_settings.BaseUrl}/render/{formatType}/batch", content);
-            return response;
         }
     }
 }

@@ -41,7 +41,7 @@ namespace FastPDFService
         private readonly HttpClient _httpClient;
         private readonly string _apiKey;
         private readonly ContentInspector _inspector;
-        private readonly PdfClientSettings _settings = new();
+        private readonly PdfClientSettings _settings = new PdfClientSettings();
 
         /// <summary>
         /// The encoding of input strings (default: Unicode/UTF16)
@@ -54,7 +54,7 @@ namespace FastPDFService
         /// <param name="apiKey">The API key to authenticate requests.</param>
         /// <param name="baseUrl">The base URL for the PDF service.</param>
         /// <param name="apiVersion">The version of the API to use.</param>
-        public PDFClient(string apiKey, string? baseUrl = null, string? apiVersion = null)
+        public PDFClient(string apiKey, string baseUrl = null, string apiVersion = null)
         {
             _apiKey = apiKey;
             if (!string.IsNullOrEmpty(baseUrl))
@@ -294,7 +294,7 @@ namespace FastPDFService
         /// <returns>A Task representing the asynchronous operation, containing a byte array of the merged PDF.</returns>
         public async Task<byte[]> MergeFromFilePathsAsync(List<string> filePaths)
         {
-            if (filePaths.Count is < 2 or > 100)
+            if (filePaths.Count < 2 || filePaths.Count > 100)
             {
                 throw new ArgumentException("The number of files to merge should be between 2 and 100.");
             }
@@ -316,7 +316,7 @@ namespace FastPDFService
         /// <returns>A Task representing the asynchronous operation, containing a byte array of the merged PDF.</returns>
         public async Task<byte[]> MergeFromStringsAsync(List<string> fileContents)
         {
-            List<byte[]> fileContentsByte = new();
+            List<byte[]> fileContentsByte = new List<byte[]>();
             foreach (var fileContent in fileContents)
             {
                 var fileBytes = Encoding.GetBytes(fileContent);
@@ -333,7 +333,7 @@ namespace FastPDFService
         /// <returns>A Task representing the asynchronous operation, containing a byte array of the merged PDF.</returns>
         public async Task<byte[]> MergeFromBytesAsync(List<byte[]> fileContents)
         {
-            if (fileContents.Count is < 2 or > 100)
+            if (fileContents.Count < 2 || fileContents.Count > 100)
             {
                 throw new ArgumentException("The number of files to merge should be between 2 and 100.");
             }
@@ -440,7 +440,7 @@ namespace FastPDFService
         /// <param name="filePath">The path to the PDF file.</param>
         /// <param name="options">Optional compression options (e.g., remove duplicate images).</param>
         /// <returns>A Task representing the asynchronous operation, containing the byte array of the compressed file.</returns>
-        public async Task<byte[]> CompressFromFileAsync(string filePath, Dictionary<string, bool>? options = null)
+        public async Task<byte[]> CompressFromFileAsync(string filePath, Dictionary<string, bool> options = null)
         {
             var fileContent = await File.ReadAllBytesAsync(filePath);
             return await CompressAsync(fileContent, options);
@@ -452,7 +452,7 @@ namespace FastPDFService
         ///  <param name="fileContent">The PDF file to compress.</param>
         /// <param name="options">Optional compression options (e.g., remove duplicate images).</param>
         /// <returns>A Task representing the asynchronous operation, containing the byte array of the compressed file.</returns>
-        public async Task<byte[]> CompressAsync(string fileContent, Dictionary<string, bool>? options = null)
+        public async Task<byte[]> CompressAsync(string fileContent, Dictionary<string, bool> options = null)
         {
             return await CompressAsync(Encoding.GetBytes(fileContent), options);
         }
@@ -463,7 +463,7 @@ namespace FastPDFService
         ///  <param name="fileContent">The PDF file to compress.</param>
         /// <param name="options">Optional compression options (e.g., remove duplicate images).</param>
         /// <returns>A Task representing the asynchronous operation, containing the byte array of the compressed file.</returns>
-        public async Task<byte[]> CompressAsync(byte[] fileContent, Dictionary<string, bool>? options = null)
+        public async Task<byte[]> CompressAsync(byte[] fileContent, Dictionary<string, bool> options = null)
         {
             using var content = new MultipartFormDataContent
             {
@@ -503,7 +503,7 @@ namespace FastPDFService
         public async Task<byte[]> RenderBarcodeAsync(
             string data, 
             string barcodeFormat = "code128", 
-            RenderOptions? renderOptions = null)
+            RenderOptions renderOptions = null)
         {
             var dataMap = new Dictionary<string, object>
             {
@@ -533,7 +533,7 @@ namespace FastPDFService
         /// <param name="filePath">The path to the image file.</param>
         /// <param name="renderOptions">Optional rendering options.</param>
         /// <returns>A Task representing the asynchronous operation, containing the byte array of the rendered image.</returns>
-        public async Task<byte[]> RenderImageFromFileAsync(string filePath, RenderOptions? renderOptions = null)
+        public async Task<byte[]> RenderImageFromFileAsync(string filePath, RenderOptions renderOptions = null)
         {
             var fileContent = await File.ReadAllBytesAsync(filePath);
             return await RenderImageAsync(fileContent, renderOptions);
@@ -545,7 +545,7 @@ namespace FastPDFService
         /// <param name="fileContent">The image file to render.</param>
         /// <param name="renderOptions">Optional rendering options.</param>
         /// <returns>A Task representing the asynchronous operation, containing the byte array of the rendered image.</returns>
-        public async Task<byte[]> RenderImageAsync(string fileContent, RenderOptions? renderOptions = null)
+        public async Task<byte[]> RenderImageAsync(string fileContent, RenderOptions renderOptions = null)
         {
             return await RenderImageAsync(Encoding.GetBytes(fileContent), renderOptions);
         }
@@ -556,7 +556,7 @@ namespace FastPDFService
         /// <param name="fileContent">The image file to render.</param>
         /// <param name="renderOptions">Optional rendering options.</param>
         /// <returns>A Task representing the asynchronous operation, containing the byte array of the rendered image.</returns>
-        public async Task<byte[]> RenderImageAsync(byte[] fileContent, RenderOptions? renderOptions = null)
+        public async Task<byte[]> RenderImageAsync(byte[] fileContent, RenderOptions renderOptions = null)
         {
             using var content = new MultipartFormDataContent();
             var fileByteArrayContent = new ByteArrayContent(fileContent);
@@ -581,7 +581,7 @@ namespace FastPDFService
         /// <param name="imageId">The ID of the image to be rendered.</param>
         /// <param name="renderOptions">Optional rendering options.</param>
         /// <returns>A Task representing the asynchronous operation, containing the byte array of the rendered image.</returns>
-        public async Task<byte[]> RenderImageFromIdAsync(string imageId, RenderOptions? renderOptions = null)
+        public async Task<byte[]> RenderImageFromIdAsync(string imageId, RenderOptions renderOptions = null)
         {
             using var content = new MultipartFormDataContent();
             if (renderOptions != null)
@@ -599,7 +599,7 @@ namespace FastPDFService
         /// </summary>
         /// <param name="limit">Optional maximum number of templates to retrieve.</param>
         /// <returns>A Task representing the asynchronous operation, containing a list of available templates.</returns>
-        public async Task<List<Template>?> GetAllTemplatesAsync(int? limit = null)
+        public async Task<List<Template>> GetAllTemplatesAsync(int? limit = null)
         {
             var url = $"{_settings.BaseUrl}/template";
             if (limit.HasValue)
@@ -615,7 +615,7 @@ namespace FastPDFService
         /// </summary>
         /// <param name="templateId">The ID of the template to retrieve.</param>
         /// <returns>A Task representing the asynchronous operation, containing the template associated with the given ID.</returns>
-        public async Task<Template?> GetTemplateAsync(string templateId)
+        public async Task<Template> GetTemplateAsync(string templateId)
         {
             return await GetAsync<Template>($"{_settings.BaseUrl}/template/{templateId}");
         }
@@ -628,11 +628,11 @@ namespace FastPDFService
         /// <param name="headerFilePath">Optional path to the file containing the header HTML code.</param>
         /// <param name="footerFilePath">Optional path to the file containing the footer HTML code.</param>
         /// <returns>A Task representing the asynchronous operation, containing the newly created template.</returns>
-        public async Task<Template?> AddTemplateFromFileAsync(
+        public async Task<Template> AddTemplateFromFileAsync(
             string filePath, 
             Template templateData, 
-            string? headerFilePath = null, 
-            string? footerFilePath = null)
+            string headerFilePath = null, 
+            string footerFilePath = null)
         {
             using var fileContent = new StreamContent(File.OpenRead(filePath));
             using var headerContent = headerFilePath != null ? new StreamContent(File.OpenRead(headerFilePath)) : null;
@@ -660,11 +660,11 @@ namespace FastPDFService
         /// <param name="headerFileContent">Optional content of the HTML header.</param>
         /// <param name="footerFileContent">Optional content of the HTML footer.</param>
         /// <returns>A Task representing the asynchronous operation, containing the newly created template.</returns>
-        public async Task<Template?> AddTemplateAsync(
+        public async Task<Template> AddTemplateAsync(
             byte[] fileContent, 
             Template templateData, 
-            byte[]? headerFileContent = null, 
-            byte[]? footerFileContent = null)
+            byte[] headerFileContent = null, 
+            byte[] footerFileContent = null)
         {
             using var fileStreamContent = new ByteArrayContent(fileContent);
             using var headerStreamContent = headerFileContent != null ? new ByteArrayContent(headerFileContent) : null;
@@ -692,14 +692,14 @@ namespace FastPDFService
         /// <param name="headerFileContent">Optional content of the HTML header.</param>
         /// <param name="footerFileContent">Optional content of the HTML footer.</param>
         /// <returns>A Task representing the asynchronous operation, containing the newly created template.</returns>
-        public async Task<Template?> AddTemplateAsync(
+        public async Task<Template> AddTemplateAsync(
             string fileContent, 
             Template templateData, 
-            string? headerFileContent = null, 
-            string? footerFileContent = null)
+            string headerFileContent = null, 
+            string footerFileContent = null)
         {
-            byte[]? headerFileContentBytes = headerFileContent == null ? null : Encoding.GetBytes(headerFileContent);
-            byte[]? footerFileContentBytes = footerFileContent == null ? null : Encoding.GetBytes(footerFileContent);
+            byte[] headerFileContentBytes = headerFileContent == null ? null : Encoding.GetBytes(headerFileContent);
+            byte[] footerFileContentBytes = footerFileContent == null ? null : Encoding.GetBytes(footerFileContent);
             return await AddTemplateAsync(Encoding.GetBytes(fileContent), templateData, headerFileContentBytes, footerFileContentBytes);
         }
 
@@ -711,7 +711,7 @@ namespace FastPDFService
         /// <param name="styleFileData">The meta-data of the stylesheet file.</param>
         /// <returns>A Task representing the asynchronous operation, containing the StyleFile object of the newly
         /// added stylesheet.</returns>
-        public async Task<StyleFile?> AddStylesheetFromFileAsync(string templateId, string filePath, StyleFile styleFileData)
+        public async Task<StyleFile> AddStylesheetFromFileAsync(string templateId, string filePath, StyleFile styleFileData)
         {
             using var fileContent = new StreamContent(File.OpenRead(filePath));
             var filename = Path.GetFileName(filePath);
@@ -727,7 +727,7 @@ namespace FastPDFService
         /// <param name="styleFileData">The meta-data of the stylesheet file.</param>
         /// <returns>A Task representing the asynchronous operation, containing the StyleFile object of the newly added
         /// stylesheet.</returns>
-        public async Task<StyleFile?> AddStylesheetAsync(string templateId, byte[] fileContent, StyleFile styleFileData)
+        public async Task<StyleFile> AddStylesheetAsync(string templateId, byte[] fileContent, StyleFile styleFileData)
         {
             using var fileStreamContent = new ByteArrayContent(fileContent);
             var filename = "file." + styleFileData.Format;
@@ -743,7 +743,7 @@ namespace FastPDFService
         /// <param name="styleFileData">The meta-data of the stylesheet file.</param>
         /// <returns>A Task representing the asynchronous operation, containing the StyleFile object of the newly added
         /// stylesheet.</returns>
-        public async Task<StyleFile?> AddStylesheetAsync(string templateId, string fileContent, StyleFile styleFileData)
+        public async Task<StyleFile> AddStylesheetAsync(string templateId, string fileContent, StyleFile styleFileData)
         {
             return await AddStylesheetAsync(templateId, Encoding.GetBytes(fileContent), styleFileData);
         }
@@ -756,7 +756,7 @@ namespace FastPDFService
         /// <param name="imageFileData">The meta-data of the image file.</param>
         /// <returns>A Task representing the asynchronous operation, containing the ImageFile object of the newly added
         /// image.</returns>
-        public async Task<ImageFile?> AddImageFromFileAsync(string templateId, string filePath, ImageFile imageFileData)
+        public async Task<ImageFile> AddImageFromFileAsync(string templateId, string filePath, ImageFile imageFileData)
         {
             var fileContent = await File.ReadAllBytesAsync(filePath);
             var mimeType = GetFileMimeType(fileContent);
@@ -776,7 +776,7 @@ namespace FastPDFService
         /// <param name="imageFileData">The meta-data of the image file.</param>
         /// <returns>A Task representing the asynchronous operation, containing the ImageFile object of the newly added
         /// image.</returns>
-        public async Task<ImageFile?> AddImageAsync(string templateId, byte[] fileContent, ImageFile imageFileData)
+        public async Task<ImageFile> AddImageAsync(string templateId, byte[] fileContent, ImageFile imageFileData)
         {
             var mimeType = GetFileMimeType(fileContent);
             var filename = "image." + imageFileData.Format;
@@ -795,7 +795,7 @@ namespace FastPDFService
         /// <param name="imageFileData">The meta-data of the image file.</param>
         /// <returns>A Task representing the asynchronous operation, containing the ImageFile object of the newly added
         /// image.</returns>
-        public async Task<ImageFile?> AddImageAsync(string templateId, string fileContent, ImageFile imageFileData)
+        public async Task<ImageFile> AddImageAsync(string templateId, string fileContent, ImageFile imageFileData)
         {
             return await AddImageAsync(templateId, Encoding.GetBytes(fileContent), imageFileData);
         }
@@ -882,7 +882,7 @@ namespace FastPDFService
         public async Task<byte[]> RenderTemplateAsync(
             string templateId, 
             string renderDataPath, 
-            RenderOptions? renderOptions = null, 
+            RenderOptions renderOptions = null, 
             string formatType = "pdf")
         {
             var renderDataObj = ParseRenderDataObj(renderDataPath);
@@ -900,8 +900,8 @@ namespace FastPDFService
         /// <returns>A Task representing the asynchronous operation, containing the byte array of the rendered template.</returns>
         public async Task<byte[]> RenderTemplateAsync(
             string templateId, 
-            Dictionary<string, object>? renderData, 
-            RenderOptions? renderOptions = null, 
+            Dictionary<string, object> renderData, 
+            RenderOptions renderOptions = null, 
             string formatType = "pdf")
         {
             using var content = new MultipartFormDataContent();
@@ -932,7 +932,7 @@ namespace FastPDFService
         public async Task<byte[]> RenderTemplateManyAsync(
             string templateId, 
             string renderDataPath, 
-            RenderOptions? renderOptions = null, 
+            RenderOptions renderOptions = null, 
             string formatType = "pdf")
         {
             var renderDataList = await ParseRenderDataListAsync(renderDataPath);
@@ -952,8 +952,8 @@ namespace FastPDFService
         /// templates.</returns>
         public async Task<byte[]> RenderTemplateManyAsync(
             string templateId, 
-            List<Dictionary<string, object>>? renderDataList, 
-            RenderOptions? renderOptions = null, 
+            List<Dictionary<string, object>> renderDataList, 
+            RenderOptions renderOptions = null, 
             string formatType = "pdf")
         {
             using var content = new MultipartFormDataContent();
@@ -984,11 +984,11 @@ namespace FastPDFService
         /// array.</returns>
         public async Task<byte[]> RenderFromFileAsync(
             string templateFilePath,
-            Template? template = null,
-            object? renderData = null,
-            string? headerFilePath = null,
-            string? footerFilePath = null,
-            RenderOptions? renderOptions = null,
+            Template template = null,
+            object renderData = null,
+            string headerFilePath = null,
+            string footerFilePath = null,
+            RenderOptions renderOptions = null,
             string formatType = "pdf")
         {
             // Parse render data if it's a string path
@@ -1025,11 +1025,11 @@ namespace FastPDFService
         /// <returns>A Task representing the asynchronous operation, containing the rendered template as a byte array.</returns>
         public async Task<byte[]> RenderAsync(
             byte[] templateFileContent,
-            Template? template = null,
-            Dictionary<string, object>? renderData = null,
-            byte[]? headerFileContent = null,
-            byte[]? footerFileContent = null,
-            RenderOptions? renderOptions = null,
+            Template template = null,
+            Dictionary<string, object> renderData = null,
+            byte[] headerFileContent = null,
+            byte[] footerFileContent = null,
+            RenderOptions renderOptions = null,
             string formatType = "pdf")
         {
             using var templateFileBody = new ByteArrayContent(templateFileContent);
@@ -1059,15 +1059,15 @@ namespace FastPDFService
         /// <returns>A Task representing the asynchronous operation, containing the rendered template as a byte array.</returns>
         public async Task<byte[]> RenderAsync(
             string templateFileContent,
-            Template? template = null,
-            Dictionary<string, object>? renderData = null,
-            string? headerFileContent = null,
-            string? footerFileContent = null,
-            RenderOptions? renderOptions = null,
+            Template template = null,
+            Dictionary<string, object> renderData = null,
+            string headerFileContent = null,
+            string footerFileContent = null,
+            RenderOptions renderOptions = null,
             string formatType = "pdf")
         {
-            byte[]? headerFileContentBytes = headerFileContent == null ? null : Encoding.GetBytes(headerFileContent);
-            byte[]? footerFileContentBytes = footerFileContent == null ? null : Encoding.GetBytes(footerFileContent);
+            byte[] headerFileContentBytes = headerFileContent == null ? null : Encoding.GetBytes(headerFileContent);
+            byte[] footerFileContentBytes = footerFileContent == null ? null : Encoding.GetBytes(footerFileContent);
             return await RenderAsync(
                 Encoding.GetBytes(templateFileContent), 
                 template, 
@@ -1091,11 +1091,11 @@ namespace FastPDFService
         /// </returns>
         public async Task<byte[]> RenderFromFileToPDFAsync(
             string templateFilePath,
-            string? renderDataPath = null,
-            string? headerFilePath = null,
-            string? footerFilePath = null,
-            Template? template = null,
-            RenderOptions? renderOptions = null)
+            string renderDataPath = null,
+            string headerFilePath = null,
+            string footerFilePath = null,
+            Template template = null,
+            RenderOptions renderOptions = null)
         {
             // Parse render data if it's a string path
             var renderDataDict = string.IsNullOrEmpty(renderDataPath) 
@@ -1130,11 +1130,11 @@ namespace FastPDFService
         /// </returns>
         public async Task<byte[]> RenderToPDFAsync(
             byte[] templateFileContent,
-            Dictionary<string, object>? renderData = null,
-            byte[]? headerFileContent = null,
-            byte[]? footerFileContent = null,
-            Template? template = null,
-            RenderOptions? renderOptions = null)
+            Dictionary<string, object> renderData = null,
+            byte[] headerFileContent = null,
+            byte[] footerFileContent = null,
+            Template template = null,
+            RenderOptions renderOptions = null)
         {
             renderData ??= new Dictionary<string, object>();
             using var templateFileBody = new ByteArrayContent(templateFileContent);
@@ -1164,14 +1164,14 @@ namespace FastPDFService
         /// </returns>
         public async Task<byte[]> RenderToPDFAsync(
             string templateFileContent,
-            Dictionary<string, object>? renderData = null,
-            string? headerFileContent = null,
-            string? footerFileContent = null,
-            Template? template = null,
-            RenderOptions? renderOptions = null)
+            Dictionary<string, object> renderData = null,
+            string headerFileContent = null,
+            string footerFileContent = null,
+            Template template = null,
+            RenderOptions renderOptions = null)
         {
-            byte[]? headerFileContentBytes = headerFileContent == null ? null : Encoding.GetBytes(headerFileContent);
-            byte[]? footerFileContentBytes = footerFileContent == null ? null : Encoding.GetBytes(footerFileContent);
+            byte[] headerFileContentBytes = headerFileContent == null ? null : Encoding.GetBytes(headerFileContent);
+            byte[] footerFileContentBytes = footerFileContent == null ? null : Encoding.GetBytes(footerFileContent);
             return await RenderToPDFAsync(
                 Encoding.GetBytes(templateFileContent), 
                 renderData, 
@@ -1192,8 +1192,8 @@ namespace FastPDFService
         /// byte array.</returns>
         public async Task<byte[]> RenderManyFromFileAsync(
             string templateFilePath, 
-            Template? template = null,
-            string? renderDataPath = null, 
+            Template template = null,
+            string renderDataPath = null, 
             string formatType = "pdf")
         {
             return await RenderManyFromFileAsync(templateFilePath, template, renderDataPath, null, null, null, formatType);
@@ -1212,10 +1212,10 @@ namespace FastPDFService
         /// array.</returns>
         public async Task<byte[]> RenderManyFromFileAsync(
             string templateFilePath, 
-            Template? template = null,
-            string? renderDataPath = null, 
-            string? headerFilePath = null, 
-            string? footerFilePath = null,
+            Template template = null,
+            string renderDataPath = null, 
+            string headerFilePath = null, 
+            string footerFilePath = null,
             string formatType = "pdf")
         {
             return await RenderManyFromFileAsync(
@@ -1241,28 +1241,28 @@ namespace FastPDFService
         /// <returns>A Task representing the asynchronous operation, containing the rendered templates as a byte array.</returns>
         public async Task<byte[]> RenderManyFromFileAsync(
             string templateFilePath, 
-            Template? template = null,
-            string? renderDataPath = null, 
-            string? headerFilePath = null, 
-            string? footerFilePath = null,
-            RenderOptions? renderOptions = null, 
+            Template template = null,
+            string renderDataPath = null, 
+            string headerFilePath = null, 
+            string footerFilePath = null,
+            RenderOptions renderOptions = null, 
             string formatType = "pdf")
         {
             var templateFileContent = await ReadFileAsync(templateFilePath);
-            List<Dictionary<string, object>>? renderDataList = null;
+            List<Dictionary<string, object>> renderDataList = null;
 
             if (!string.IsNullOrEmpty(renderDataPath))
             {
                 renderDataList = await ParseRenderDataListAsync(renderDataPath);
             }
 
-            byte[]? headerFileContent = null;
+            byte[] headerFileContent = null;
             if (!string.IsNullOrEmpty(headerFilePath))
             {
                 headerFileContent = await ReadFileAsync(headerFilePath);
             }
 
-            byte[]? footerFileContent = null;
+            byte[] footerFileContent = null;
             if (!string.IsNullOrEmpty(footerFilePath))
             {
                 footerFileContent = await ReadFileAsync(footerFilePath);
@@ -1292,11 +1292,11 @@ namespace FastPDFService
         /// </returns>
         public async Task<byte[]> RenderManyAsync(
             byte[] templateFileContent, 
-            Template? template = null,
-            List<Dictionary<string, object>>? renderDataList = null, 
-            byte[]? headerFileContent = null,
-            byte[]? footerFileContent = null, 
-            RenderOptions? renderOptions = null, 
+            Template template = null,
+            List<Dictionary<string, object>> renderDataList = null, 
+            byte[] headerFileContent = null,
+            byte[] footerFileContent = null, 
+            RenderOptions renderOptions = null, 
             string formatType = "pdf")
         {
             return await RenderManyInternalAsync(
@@ -1323,15 +1323,15 @@ namespace FastPDFService
         /// </returns>
         public async Task<byte[]> RenderManyAsync(
             string templateFileContent, 
-            Template? template = null,
-            List<Dictionary<string, object>>? renderDataList = null, 
-            string? headerFileContent = null,
-            string? footerFileContent = null, 
-            RenderOptions? renderOptions = null, 
+            Template template = null,
+            List<Dictionary<string, object>> renderDataList = null, 
+            string headerFileContent = null,
+            string footerFileContent = null, 
+            RenderOptions renderOptions = null, 
             string formatType = "pdf")
         {
-            byte[]? headerFileContentBytes = headerFileContent == null ? null : Encoding.GetBytes(headerFileContent);
-            byte[]? footerFileContentBytes = footerFileContent == null ? null : Encoding.GetBytes(footerFileContent);
+            byte[] headerFileContentBytes = headerFileContent == null ? null : Encoding.GetBytes(headerFileContent);
+            byte[] footerFileContentBytes = footerFileContent == null ? null : Encoding.GetBytes(footerFileContent);
             return await RenderManyInternalAsync(
                 Encoding.GetBytes(templateFileContent), 
                 template, 
@@ -1355,21 +1355,21 @@ namespace FastPDFService
         /// </returns>
         public async Task<byte[]> RenderManyFromFileAsync(
             string templateFilePath, 
-            Template? template = null,
-            List<Dictionary<string, object>>? renderDataList = null, 
-            string? headerFilePath = null, 
-            string? footerFilePath = null,
+            Template template = null,
+            List<Dictionary<string, object>> renderDataList = null, 
+            string headerFilePath = null, 
+            string footerFilePath = null,
             string formatType = "pdf")
         {
 
             var templateFileContent = await ReadFileAsync(templateFilePath);
-            byte[]? headerFileContent = null;
+            byte[] headerFileContent = null;
             if (!string.IsNullOrEmpty(headerFilePath))
             {
                 headerFileContent = await ReadFileAsync(headerFilePath);
             }
 
-            byte[]? footerFileContent = null;
+            byte[] footerFileContent = null;
             if (!string.IsNullOrEmpty(footerFilePath))
             {
                 footerFileContent = await ReadFileAsync(footerFilePath);
@@ -1386,7 +1386,7 @@ namespace FastPDFService
         /// <param name="renderData">The data to be rendered in the template.</param>
         /// <returns>A Task representing the asynchronous operation, containing the rendered PDF as a byte array.
         /// </returns>
-        public async Task<byte[]> RenderTemplateToPdfAsync(string templateId, Dictionary<string, object>? renderData)
+        public async Task<byte[]> RenderTemplateToPdfAsync(string templateId, Dictionary<string, object> renderData)
         {
             return await RenderTemplateAsync(templateId, renderData);
         }
@@ -1398,7 +1398,7 @@ namespace FastPDFService
         /// <param name="renderData">The data to be rendered in the template.</param>
         /// <returns>A Task representing the asynchronous operation, containing the rendered DOCX as a byte array.
         /// </returns>
-        public async Task<byte[]> RenderTemplateToDocxAsync(string templateId, Dictionary<string, object>? renderData)
+        public async Task<byte[]> RenderTemplateToDocxAsync(string templateId, Dictionary<string, object> renderData)
         {
             return await RenderTemplateAsync(templateId, renderData, null, "docx");
         }
@@ -1410,7 +1410,7 @@ namespace FastPDFService
         /// <param name="renderData">The data to be rendered in the template.</param>
         /// <returns>A Task representing the asynchronous operation, containing the rendered ODP as a byte array.
         /// </returns>
-        public async Task<byte[]> RenderTemplateToOdpAsync(string templateId, Dictionary<string, object>? renderData)
+        public async Task<byte[]> RenderTemplateToOdpAsync(string templateId, Dictionary<string, object> renderData)
         {
             return await RenderTemplateAsync(templateId, renderData, null, "odp");
         }
@@ -1422,7 +1422,7 @@ namespace FastPDFService
         /// <param name="renderData">The data to be rendered in the template.</param>
         /// <returns>A Task representing the asynchronous operation, containing the rendered ODS as a byte array.
         /// </returns>
-        public async Task<byte[]> RenderTemplateToOdsAsync(string templateId, Dictionary<string, object>? renderData)
+        public async Task<byte[]> RenderTemplateToOdsAsync(string templateId, Dictionary<string, object> renderData)
         {
             return await RenderTemplateAsync(templateId, renderData, null, "ods");
         }
@@ -1434,7 +1434,7 @@ namespace FastPDFService
         /// <param name="renderData">The data to be rendered in the template.</param>
         /// <returns>A Task representing the asynchronous operation, containing the rendered ODT as a byte array.
         /// </returns>
-        public async Task<byte[]> RenderTemplateToOdtAsync(string templateId, Dictionary<string, object>? renderData)
+        public async Task<byte[]> RenderTemplateToOdtAsync(string templateId, Dictionary<string, object> renderData)
         {
             return await RenderTemplateAsync(templateId, renderData, null, "odt");
         }
@@ -1446,7 +1446,7 @@ namespace FastPDFService
         /// <param name="renderData">The data to be rendered in the template.</param>
         /// <returns>A Task representing the asynchronous operation, containing the rendered PPTX as a byte array.
         /// </returns>
-        public async Task<byte[]> RenderTemplateToPptxAsync(string templateId, Dictionary<string, object>? renderData)
+        public async Task<byte[]> RenderTemplateToPptxAsync(string templateId, Dictionary<string, object> renderData)
         {
             return await RenderTemplateAsync(templateId, renderData, null, "pptx");
         }
@@ -1458,7 +1458,7 @@ namespace FastPDFService
         /// <param name="renderData">The data to be rendered in the template.</param>
         /// <returns>A Task representing the asynchronous operation, containing the rendered XLX as a byte array.
         /// </returns>
-        public async Task<byte[]> RenderTemplateToXlxAsync(string templateId, Dictionary<string, object>? renderData)
+        public async Task<byte[]> RenderTemplateToXlxAsync(string templateId, Dictionary<string, object> renderData)
         {
             return await RenderTemplateAsync(templateId, renderData, null, "xlx");
         }
@@ -1470,14 +1470,14 @@ namespace FastPDFService
         /// <param name="renderData">The data to be rendered in the template.</param>
         /// <returns>A Task representing the asynchronous operation, containing the rendered XLS as a byte array.
         /// </returns>
-        public async Task<byte[]> RenderTemplateToXlsAsync(string templateId, Dictionary<string, object>? renderData)
+        public async Task<byte[]> RenderTemplateToXlsAsync(string templateId, Dictionary<string, object> renderData)
         {
             return await RenderTemplateAsync(templateId, renderData, null, "xls");
         }
         
         private static void ConfigureJsonSerializer()
         {
-            JsonSerializerSettings settings = new()
+            JsonSerializerSettings settings = new JsonSerializerSettings()
             {
                 DateFormatHandling = DateFormatHandling.IsoDateFormat,
                 DateTimeZoneHandling = DateTimeZoneHandling.Utc,
@@ -1503,7 +1503,7 @@ namespace FastPDFService
         }
         
         // Helper method for GET requests that expect a JSON response
-        private async Task<T?> GetAsync<T>(string url)
+        private async Task<T> GetAsync<T>(string url)
         {
             var response = await GetAsync(url);
             var jsonResponse = await response.Content.ReadAsStringAsync();
@@ -1559,7 +1559,7 @@ namespace FastPDFService
             }
         }
 
-        private static HttpContent? ReadFile(string filePath)
+        private static HttpContent ReadFile(string filePath)
         {
             if (string.IsNullOrEmpty(filePath))
                 return null;
@@ -1568,16 +1568,16 @@ namespace FastPDFService
             return new ByteArrayContent(fileContent);
         }
 
-        private static HttpContent? ReadFile(byte[]? fileContent)
+        private static HttpContent ReadFile(byte[] fileContent)
         {
             if (fileContent == null)
                 return null;
             return new ByteArrayContent(fileContent);
         }
 
-        private static List<HttpContent?> ReadFilesFromBytes(List<byte[]> fileContents)
+        private static List<HttpContent> ReadFilesFromBytes(List<byte[]> fileContents)
         {
-            var fileRequestContents = new List<HttpContent?>();
+            var fileRequestContents = new List<HttpContent>();
             foreach (var fileContent in fileContents)
             {
                 fileRequestContents.Add(ReadFile(fileContent));
@@ -1585,9 +1585,9 @@ namespace FastPDFService
             return fileRequestContents;
         }
 
-        private static List<HttpContent?> ReadFiles(List<string> filePaths)
+        private static List<HttpContent> ReadFiles(List<string> filePaths)
         {
-            var fileRequestContents = new List<HttpContent?>();
+            var fileRequestContents = new List<HttpContent>();
             foreach (var filePath in filePaths)
             {
                 fileRequestContents.Add(ReadFile(filePath));
@@ -1614,14 +1614,14 @@ namespace FastPDFService
             return mimeType[0].MimeType;
         }
         
-        private async Task<Template?> AddTemplateAsync(
+        private async Task<Template> AddTemplateAsync(
             HttpContent fileRequestBody, 
             Template templateData, 
-            HttpContent? headerDataBody, 
-            HttpContent? footerDataBody, 
+            HttpContent headerDataBody, 
+            HttpContent footerDataBody, 
             string filename, 
-            string? headerFilename, 
-            string? footerFilename)
+            string headerFilename, 
+            string footerFilename)
         {
             using var content = new MultipartFormDataContent
             {
@@ -1645,7 +1645,7 @@ namespace FastPDFService
             return JsonConvert.DeserializeObject<Template>(response);
         }
         
-        private async Task<StyleFile?> AddStylesheetAsync(
+        private async Task<StyleFile> AddStylesheetAsync(
             string templateId, 
             HttpContent fileRequestBody, 
             StyleFile styleFileData, 
@@ -1662,7 +1662,7 @@ namespace FastPDFService
             return JsonConvert.DeserializeObject<StyleFile>(response);
         }
         
-        private async Task<ImageFile?> AddImageAsync(
+        private async Task<ImageFile> AddImageAsync(
             string templateId, 
             HttpContent fileRequestBody, 
             ImageFile imageFileData, 
@@ -1679,7 +1679,7 @@ namespace FastPDFService
             return JsonConvert.DeserializeObject<ImageFile>(response);
         }
         
-        private static Dictionary<string, object>? ParseRenderDataObj(object obj)
+        private static Dictionary<string, object> ParseRenderDataObj(object obj)
         {
             switch (obj)
             {
@@ -1695,7 +1695,7 @@ namespace FastPDFService
             }
         }
 
-        private static List<Dictionary<string, object>>? ParseRenderDataList(object obj)
+        private static List<Dictionary<string, object>> ParseRenderDataList(object obj)
         {
             switch (obj)
             {
@@ -1712,13 +1712,13 @@ namespace FastPDFService
             }
         }
 
-        private static async Task<Dictionary<string, object>?> ParseRenderDataObjAsync(string path)
+        private static async Task<Dictionary<string, object>> ParseRenderDataObjAsync(string path)
         {
             var fileContent = await File.ReadAllTextAsync(path);
             return JsonConvert.DeserializeObject<Dictionary<string, object>>(fileContent);
         }
 
-        private static async Task<List<Dictionary<string, object>>?> ParseRenderDataListAsync(string path)
+        private static async Task<List<Dictionary<string, object>>> ParseRenderDataListAsync(string path)
         {
             var fileContent = await File.ReadAllTextAsync(path);
             return JsonConvert.DeserializeObject<List<Dictionary<string, object>>>(fileContent);
@@ -1737,12 +1737,12 @@ namespace FastPDFService
         
         private async Task<byte[]> RenderInternalAsync(
             ByteArrayContent templateFileContent,
-            Template? template,
-            Dictionary<string, object>? renderData,
-            ByteArrayContent? headerFileContent = null,
-            ByteArrayContent? footerFileContent = null,
+            Template template,
+            Dictionary<string, object> renderData,
+            ByteArrayContent headerFileContent = null,
+            ByteArrayContent footerFileContent = null,
             string formatType = "pdf",
-            RenderOptions? renderOptions = null)
+            RenderOptions renderOptions = null)
         {
             using var content = new MultipartFormDataContent
             {
@@ -1779,11 +1779,11 @@ namespace FastPDFService
         
         private async Task<byte[]> RenderManyInternalAsync(
             byte[] templateFileContent, 
-            Template? templateData,
-            List<Dictionary<string, object>>? renderDataList, 
-            byte[]? headerFileContent, 
-            byte[]? footerFileContent,
-            RenderOptions? renderOptions, 
+            Template templateData,
+            List<Dictionary<string, object>> renderDataList, 
+            byte[] headerFileContent, 
+            byte[] footerFileContent,
+            RenderOptions renderOptions, 
             string formatType)
         {
             using var content = new MultipartFormDataContent
