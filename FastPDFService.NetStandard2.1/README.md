@@ -1,6 +1,6 @@
-# FastPDF C# Package (.NET 6.0)
+# FastPDF C# Package (.NET Standard 2.1)
 
-Welcome to **FastPDFService** C# Package, the versatile and quick solution for your PDF rendering needs. This package is a SDK for https://fastpdfservice.com REST API. Requires .NET 6.0 or newer.
+Welcome to **FastPDFService** C# Package, the versatile and quick solution for your PDF rendering needs. This package is a SDK for https://fastpdfservice.com REST API. Requires .NET Standard 2.1.
 
 *You have to register to [fastpdfservice.com](https://fastpdfservice.com) to obtain an API key*
 
@@ -20,14 +20,14 @@ Welcome to **FastPDFService** C# Package, the versatile and quick solution for y
 
 ## Getting Started
 
-Before you start with the FastPDFService C# Package, make sure you have .NET 6.0 installed on your machine.
+Before you start with the FastPDFService C# Package, make sure you have .NET Standard 2.1 installed on your machine.
 
 To use `FastPDFService`, you'll first need to register an account to [fastpdfservice.com](https://fastpdfservice.com), and get your API key. 
 
 Install FastPDFService from NuGet:
 ```xml {{ title: 'C#' }}
 // Add this package reference in your .csproj file
-<PackageReference Include="FastPDFService" Version="1.0.2" />
+<PackageReference Include="FastPDFService" Version="1.0.3" />
 ```
 
 Import the package in your C# file:
