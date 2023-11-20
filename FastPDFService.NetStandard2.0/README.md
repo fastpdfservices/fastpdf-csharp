@@ -221,14 +221,14 @@ To begin, we create our template with an `<img>` tag, using our image uri in the
 
 
 ```C# {{ title: 'C#' }}
-String template_content = """
+string templateContent = @"
 <html>
 <body>
     <img src="{{my_favourite_logo}}">
     <p>Welcome, {{name}}!</p>
 </body>
 </html>
-""";
+";
 Template templateData = new Template { Name = "image-document", Format = "html" };
 Template template = await client.AddTemplateAsync(templateContent, templateData);
 ```
@@ -274,14 +274,14 @@ Firstly, let's create a new template:
 
 
 ```C# {{ title: 'C#' }}
-String template_content = """
+string templateContent = @"
 <html>
 <body>
     <h1>{{title}}</h1>
     <p>{{content}}</p>
 </body>
 </html>
-""";
+";
 Template templateData = new Template { Name = "custom-header-footer-document", Format = "html" };
 ```
 
@@ -293,16 +293,6 @@ We will use them to set the page number.
 
 
 ```C# {{ title: 'C#' }}
-string templateContent = @"
-<html>
-<body>
-    <h1>{{title}}</h1>
-    <p>{{content}}</p>
-</body>
-</html>
-";
-Template templateData = new Template { Name = "custom-header-footer-document", Format = "html" };
-
 string headerContent = @"
 <div style='text-align: center; padding: 10px; font-size: 8px;'>
     <h2>{{header_note}}</h2>
