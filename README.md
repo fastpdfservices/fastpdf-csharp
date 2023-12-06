@@ -1,3 +1,5 @@
+[![NuGet version](https://img.shields.io/nuget/v/FastPDFService.svg)](https://www.nuget.org/packages/FastPDFService/)
+
 # FastPDF C# Package (.NET 6.0, .NET Standard 2.0, .NET Standard 2.1)
 
 Welcome to **FastPDFService** C# Package, the versatile and quick solution for your PDF rendering needs. This package is a SDK for https://fastpdfservice.com REST API. Requires .NET 6.0 or newer, or .NET Standard 2.0, or .NET Standard 2.1.
