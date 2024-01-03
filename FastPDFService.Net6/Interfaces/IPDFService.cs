@@ -222,13 +222,22 @@ namespace FastPDFService
         /// <returns>A Task representing the asynchronous operation, containing the byte array of the compressed file.</returns>
         public Task<byte[]> CompressFromFileAsync(string filePath, Dictionary<string, bool>? options = null);
 
+
         /// <summary>
-        /// Asynchronously compresses a PDF file with optional compression options.
+        /// Asynchronously encrypts a PDF file with a password.
         /// </summary>
-        ///  <param name="fileContent">The PDF file to compress.</param>
-        /// <param name="options">Optional compression options (e.g., remove duplicate images).</param>
-        /// <returns>A Task representing the asynchronous operation, containing the byte array of the compressed file.</returns>
-        public Task<byte[]> CompressAsync(string fileContent, Dictionary<string, bool>? options = null);
+        /// <param name="fileContent">The PDF file to encrypt.</param>
+        /// <param name="password">The password for encryption.</param>
+        /// <returns>A Task representing the asynchronous operation, containing the byte array of the encrypted file.</returns>
+        public Task<byte[]> EncryptAsync(byte[] fileContent, string password);
+
+        /// <summary>
+        /// Asynchronously encrypts a PDF file with a password, given a file path.
+        /// </summary>
+        /// <param name="filePath">The path to the PDF file.</param>
+        /// <param name="password">The password for encryption.</param>
+        /// <returns>A Task representing the asynchronous operation, containing the byte array of the encrypted file.</returns>
+        public Task<byte[]> EncryptFromFileAsync(string filePath, string password);
 
         /// <summary>
         /// Asynchronously compresses a PDF file with optional compression options.
