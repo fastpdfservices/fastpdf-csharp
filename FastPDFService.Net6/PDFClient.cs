@@ -499,7 +499,7 @@ namespace FastPDFService
             using var content = new MultipartFormDataContent
             {
                 { GetPDFByteArray(fileContent), "file", "file.pdf" },
-                { new StringContent(JsonConvert.SerializeObject(new { password })), "options" }
+                { new StringContent(JsonConvert.SerializeObject(new { encrypt_password = password })), "options" }
             };
 
             return await PostAsync($"{_settings.BaseUrl}/pdf/encrypt", content);

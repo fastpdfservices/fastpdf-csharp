@@ -522,7 +522,7 @@ namespace FastPDFService
                 content.Add(GetPDFByteArray(fileContent), "file", "file.pdf");
                 var passwordOptions = new Dictionary<string, string>
                 {
-                    { "password", password }
+                    { "encrypt_password", password }
                 };
                 content.Add(new StringContent(JsonConvert.SerializeObject(passwordOptions)), "options");
 
