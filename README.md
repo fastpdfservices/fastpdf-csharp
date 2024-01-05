@@ -29,7 +29,7 @@ To use `FastPDFService`, you'll first need to register an account to [fastpdfser
 Install FastPDFService from NuGet:
 ```xml {{ title: 'C#' }}
 // Add this package reference in your .csproj file
-<PackageReference Include="FastPDFService" Version="1.0.4" />
+<PackageReference Include="FastPDFService" Version="1.0.5" />
 ```
 
 Import the package in your C# file:
